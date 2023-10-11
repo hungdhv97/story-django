@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('stories', '0002_remove_story_chapter_count_alter_story_status'),
     ]

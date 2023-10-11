@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('stories', '0007_rename_author_name_author_name_and_more'),
     ]
