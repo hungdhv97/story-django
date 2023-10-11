@@ -1,3 +1,4 @@
+from cloudinary.models import CloudinaryField
 from django.db import models
 from django.utils.text import slugify
 from unidecode import unidecode
@@ -33,7 +34,7 @@ class Story(models.Model):
         default=Status.ONGOING,
     )
     source = models.CharField(max_length=255, blank=True)
-    cover_photo = models.ImageField(upload_to='covers/', blank=True)
+    cover_photo = CloudinaryField('image')
     slug = models.SlugField(max_length=255, unique=True, editable=False, blank=True)
 
     def save(self, *args, **kwargs):
