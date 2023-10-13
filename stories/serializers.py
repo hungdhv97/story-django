@@ -59,7 +59,8 @@ class StorySerializer(serializers.ModelSerializer):
 
     def get_genres(self, obj):
         story_genres = StoryGenre.objects.filter(story=obj)
-        return GenreSerializer(story_genres.values('genre__id', 'genre__name'), many=True).data
+        genres = Genre.objects.filter(storygenre__in=story_genres)
+        return GenreSerializer(genres, many=True).data
 
     def get_latest_chapter(self, obj):
         latest_chapter = Chapter.objects.filter(story=obj).order_by('-chapter_number').first()
