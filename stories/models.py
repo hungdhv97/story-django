@@ -26,7 +26,7 @@ class Story(models.Model):
 
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
-    author_id = models.ForeignKey(Author, on_delete=models.CASCADE)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE)
     created_date = models.DateField()
     status = models.CharField(
         max_length=2,
@@ -54,18 +54,18 @@ class Story(models.Model):
 
 
 class StoryGenre(models.Model):
-    story_id = models.ForeignKey(Story, on_delete=models.CASCADE)
-    genre_id = models.ForeignKey(Genre, on_delete=models.CASCADE)
+    story = models.ForeignKey(Story, on_delete=models.CASCADE)
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = (('story_id', 'genre_id'),)
+        unique_together = (('story', 'genre'),)
         indexes = [
-            models.Index(fields=['story_id', 'genre_id'], name='story_genre_idx'),
+            models.Index(fields=['story', 'genre'], name='story_genre_idx'),
         ]
 
 
 class Chapter(models.Model):
-    story_id = models.ForeignKey(Story, on_delete=models.CASCADE)
+    story = models.ForeignKey(Story, on_delete=models.CASCADE)
     chapter_number = models.IntegerField()
     content = models.TextField(blank=True)
     publish_date = models.DateField()
@@ -75,17 +75,17 @@ class Chapter(models.Model):
 
 
 class Rating(models.Model):
-    story_id = models.ForeignKey(Story, on_delete=models.CASCADE)
+    story = models.ForeignKey(Story, on_delete=models.CASCADE)
     rating_value = models.IntegerField()
 
 
 class ReadingStats(models.Model):
-    story_id = models.ForeignKey(Story, on_delete=models.CASCADE)
+    story = models.ForeignKey(Story, on_delete=models.CASCADE)
     read_count = models.IntegerField()
     date = models.DateField()
 
     class Meta:
-        unique_together = (('story_id', 'date'),)
+        unique_together = (('story', 'date'),)
         indexes = [
-            models.Index(fields=['story_id', 'date'], name='reading_stats_idx'),
+            models.Index(fields=['story', 'date'], name='reading_stats_idx'),
         ]

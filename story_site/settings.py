@@ -12,8 +12,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 
-import cloudinary
-import cloudinary.api
 import cloudinary.uploader
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -42,6 +40,7 @@ INSTALLED_APPS = [
     'stories',
     'cloudinary',
     'rest_framework',
+    'django_filters'
 ]
 
 MIDDLEWARE = [
@@ -136,3 +135,8 @@ cloudinary.config(
     api_key="282633384362776",
     api_secret="_lKNowTjkgcktrr0SYansQU3x9w"
 )
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'stories.pagination.CustomPagination',
+    'PAGE_SIZE': 100
+}
