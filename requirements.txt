@@ -2,6 +2,7 @@ asgiref==3.7.2
 certifi==2023.7.22
 cloudinary==1.36.0
 Django==4.2.6
+django-filter==23.3
 djangorestframework==3.14.0
 drf-yasg==1.21.7
 inflection==0.5.1
