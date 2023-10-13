@@ -1,37 +1,51 @@
-from django_filters import rest_framework as filters
-from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 
 from .models import Story
 from .pagination import CustomPagination
 from .serializers import StorySerializer
 
 
-class StoryFilter(filters.FilterSet):
-    authorId = filters.NumberFilter(field_name="author_id")
-    genreId = filters.NumberFilter(method='filter_by_genre')
-    slug = filters.CharFilter(field_name="slug")
-    isHot = filters.BooleanFilter(field_name="is_hot")
-    isNew = filters.BooleanFilter(field_name="is_new")
-    isCompleted = filters.BooleanFilter(field_name="status", method='filter_by_status')
-
-    class Meta:
-        model = Story
-        fields = []
-
-    def filter_by_genre(self, queryset, name, value):
-        return queryset.filter(genres__id=value)
-
-    def filter_by_status(self, queryset, name, value):
-        return queryset.filter(status=Story.Status.COMPLETED if value else Story.Status.ONGOING)
-
-
-class StoryListView(APIView):
+class StoryListView(ListAPIView):
     serializer_class = StorySerializer
     pagination_class = CustomPagination
 
-    def get(self, request, *args, **kwargs):
-        stories = Story.objects.all()
-        filt = StoryFilter(request.GET, queryset=stories)
-        paginated_stories = self.pagination_class().paginate_queryset(filt.qs, request)
-        serializer = self.serializer_class(paginated_stories, many=True)
-        return self.pagination_class().get_paginated_response(serializer.data)
+    def get_queryset(self):
+        queryset = Story.objects.all()
+
+        # Filter by author ID
+        author_id = self.request.query_params.get('authorId', None)
+        if author_id is not None:
+            queryset = queryset.filter(author__id=author_id)
+
+        # Filter by genre ID
+        genre_id = self.request.query_params.get('genreId', None)
+        if genre_id is not None:
+            queryset = queryset.filter(genres__genre__id=genre_id)
+
+        # Filter by slug
+        slug = self.request.query_params.get('slug', None)
+        if slug is not None:
+            queryset = queryset.filter(slug=slug)
+
+        # Filter by isHot
+        is_hot = self.request.query_params.get('isHot', None)
+        if is_hot is not None:
+            is_hot = is_hot.lower() == 'true'
+            # Assuming you have a method to determine if a story is hot
+            queryset = queryset.filter(is_hot=is_hot)
+
+        # Filter by isNew
+        is_new = self.request.query_params.get('isNew', None)
+        if is_new is not None:
+            is_new = is_new.lower() == 'true'
+            # Assuming you have a method to determine if a story is new
+            queryset = queryset.filter(is_new=is_new)
+
+        # Filter by isCompleted
+        is_completed = self.request.query_params.get('isCompleted', None)
+        if is_completed is not None:
+            is_completed = is_completed.lower() == 'true'
+            status = 'completed' if is_completed else 'ongoing'
+            queryset = queryset.filter(status=status)
+
+        return queryset

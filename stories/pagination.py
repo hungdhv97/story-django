@@ -3,13 +3,11 @@ from rest_framework.response import Response
 
 
 class CustomPagination(PageNumberPagination):
-    page_size = 10  # Default to 10
-    page_size_query_param = 'limit'  # Allow client to override, using `?limit=xxx`.
-    max_page_size = 100  # Maximum limit allowed when using `?limit=xxx`.
+    page_size_query_param = 'limit'
 
     def get_paginated_response(self, data):
         return Response({
-            'pagination': {
+            'meta': {
                 'total_records': self.page.paginator.count,
                 'total_pages': self.page.paginator.num_pages,
                 'current_page': self.page.number,
