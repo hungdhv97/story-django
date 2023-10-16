@@ -25,7 +25,8 @@ class ChapterDetailSerializer(serializers.ModelSerializer):
 
 
 class StorySerializer(serializers.ModelSerializer):
-    chapter_count = serializers.SerializerMethodField()
+    total_chapters = serializers.SerializerMethodField()
+    total_reads = serializers.SerializerMethodField()
     is_new = serializers.SerializerMethodField()
     is_hot = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
@@ -37,12 +38,16 @@ class StorySerializer(serializers.ModelSerializer):
         model = Story
         fields = [
             'id', 'title', 'description', 'author', 'genres',
-            'chapter_count', 'created_date', 'status', 'source',
+            'total_chapters', 'total_reads', 'created_date', 'status', 'source',
             'cover_photo', 'is_new', 'is_hot', 'rating', 'slug', 'latest_chapter'
         ]
 
-    def get_chapter_count(self, obj):
+    def get_total_chapters(self, obj):
         return Chapter.objects.filter(story=obj).count()
+
+    def get_total_reads(self, obj):
+        total_reads = ReadingStats.objects.filter(story=obj).aggregate(models.Sum('read_count'))['read_count__sum']
+        return total_reads if total_reads else 0
 
     def get_is_new(self, obj):
         return (datetime.now().date() - obj.created_date) <= timedelta(days=30)

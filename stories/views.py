@@ -1,6 +1,8 @@
+from django.db.models import Sum
 from rest_framework.generics import ListAPIView
 
-from .models import Story
+from .const import HOT_TOTAL_READS
+from .models import Story, ReadingStats
 from .pagination import CustomPagination
 from .serializers import StorySerializer
 
@@ -31,8 +33,18 @@ class StoryListView(ListAPIView):
         is_hot = self.request.query_params.get('is_hot', None)
         if is_hot is not None:
             is_hot = is_hot.lower() == 'true'
-            # Assuming you have a method to determine if a story is hot
-            queryset = queryset.filter(is_hot=is_hot)
+            if is_hot:
+                # Assuming a story is considered hot if it has more than 500 reads
+                hot_stories_ids = ReadingStats.objects.values('story').annotate(
+                    total_reads=Sum('read_count')
+                ).filter(total_reads__gte=HOT_TOTAL_READS).values_list('story', flat=True)
+                queryset = queryset.filter(id__in=hot_stories_ids)
+            else:
+                # If is_hot is false, filter out the hot stories
+                hot_stories_ids = ReadingStats.objects.values('story').annotate(
+                    total_reads=Sum('read_count')
+                ).filter(total_reads__gte=HOT_TOTAL_READS).values_list('story', flat=True)
+                queryset = queryset.exclude(id__in=hot_stories_ids)
 
         # Filter by isNew
         is_new = self.request.query_params.get('is_new', None)
