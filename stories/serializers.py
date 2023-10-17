@@ -31,8 +31,8 @@ class StorySerializer(serializers.ModelSerializer):
     is_hot = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
     genres = serializers.SerializerMethodField()
-    author = AuthorSerializer()
     latest_chapter = serializers.SerializerMethodField()
+    author = AuthorSerializer()
 
     class Meta:
         model = Story
