@@ -30,7 +30,7 @@ class StoryListView(ListAPIView):
             #     output_field=IntegerField()
             # ),
             total_reads_2=Sum('readingstats__read_count', distinct=True),
-            is_new=ExpressionWrapper(now - F('created_date'), output_field=DurationField()) <= timezone.timedelta(days=30),
+            # is_new=ExpressionWrapper(now - F('created_date'), output_field=DurationField()) <= timezone.timedelta(days=30),
             # is_hot=Subquery(
             #     ReadingStats.objects.filter(story=OuterRef('pk')).values('story')
             #     .annotate(total=Sum('read_count')).values('total'),

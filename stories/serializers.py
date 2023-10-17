@@ -28,7 +28,7 @@ class StorySerializer(serializers.ModelSerializer):
     total_chapters = serializers.IntegerField()
     # total_reads = serializers.IntegerField()
     total_reads_2 = serializers.IntegerField()
-    is_new = serializers.BooleanField()
+    # is_new = serializers.BooleanField()
     # is_hot = serializers.SerializerMethodField()
     # rating = serializers.SerializerMethodField()
     # genres = serializers.SerializerMethodField()
@@ -45,7 +45,7 @@ class StorySerializer(serializers.ModelSerializer):
             'total_reads_2',
             'created_date', 'status', 'source',
             'cover_photo',
-            'is_new',
+            # 'is_new',
             # 'is_hot', 'rating',
             'slug',
             # 'latest_chapter'

@@ -100,12 +100,14 @@ WSGI_APPLICATION = 'story_site.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'Hung@230819971',
-        'HOST': 'db.eeqctqkrfdhksbilkrnp.supabase.co',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / "data.sqlite3",
+        # 'ENGINE': 'django.db.backends.postgresql',
+        # 'NAME': 'postgres',
+        # 'USER': 'postgres',
+        # 'PASSWORD': 'Hung@230819971',
+        # 'HOST': 'db.eeqctqkrfdhksbilkrnp.supabase.co',
+        # 'PORT': '5432',
     }
 }
 
