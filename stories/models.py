@@ -20,16 +20,16 @@ class Genre(models.Model):
 
 class Story(models.Model):
     class Status(models.TextChoices):
-        ONGOING = 'OG', 'Ongoing'
-        COMPLETED = 'CP', 'Completed'
-        DROPPED = 'DR', 'Dropped'
+        ONGOING = 'ongoing', 'Ongoing'
+        COMPLETED = 'completed', 'Completed'
+        DROPPED = 'dropped', 'Dropped'
 
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     created_date = models.DateField()
     status = models.CharField(
-        max_length=2,
+        max_length=9,
         choices=Status.choices,
         default=Status.ONGOING,
     )
