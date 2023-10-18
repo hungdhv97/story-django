@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('stories', '0016_remove_readingstats_reading_stats_idx_and_more'),
     ]
@@ -13,6 +12,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='story',
             name='status',
-            field=models.CharField(choices=[('ongoing', 'Ongoing'), ('completed', 'Completed'), ('dropped', 'Dropped')], default='ongoing', max_length=9),
+            field=models.CharField(choices=[('ongoing', 'Ongoing'), ('completed', 'Completed'), ('dropped', 'Dropped')],
+                                   default='ongoing', max_length=9),
         ),
     ]

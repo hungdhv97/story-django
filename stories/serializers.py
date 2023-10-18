@@ -22,11 +22,11 @@ class ChapterDetailSerializer(serializers.ModelSerializer):
 
 
 class StorySerializer(serializers.ModelSerializer):
-    total_chapters = serializers.IntegerField()
-    total_reads = serializers.IntegerField()
-    is_new = serializers.BooleanField()
-    is_hot = serializers.BooleanField()
-    avg_rating = serializers.FloatField()
+    total_chapters = serializers.IntegerField(read_only=True)
+    total_reads = serializers.IntegerField(read_only=True)
+    is_new = serializers.BooleanField(read_only=True)
+    is_hot = serializers.BooleanField(read_only=True)
+    avg_rating = serializers.FloatField(read_only=True)
     genres = serializers.SerializerMethodField()
     latest_chapter = serializers.SerializerMethodField()
     author = AuthorSerializer()
@@ -51,7 +51,6 @@ class StorySerializer(serializers.ModelSerializer):
 class StoryQueryParameterSerializer(serializers.Serializer):
     author_id = serializers.IntegerField(required=False)
     genre_id = serializers.IntegerField(required=False)
-    slug = serializers.CharField(required=False)
     is_hot = serializers.BooleanField(required=False)
     is_new = serializers.BooleanField(required=False)
     status = serializers.CharField(required=False)
