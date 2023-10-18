@@ -1,6 +1,7 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from .models import Story, Author, Genre, Chapter, StoryGenre
+from .models import Story, Author, Genre, Chapter, StoryGenre, Rating
 
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -54,3 +55,36 @@ class StoryQueryParameterSerializer(serializers.Serializer):
     is_hot = serializers.BooleanField(required=False)
     is_new = serializers.BooleanField(required=False)
     status = serializers.CharField(required=False)
+
+
+class StoryDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Story
+        fields = ['title', 'slug']
+
+
+class ChapterResponseSerializer(serializers.ModelSerializer):
+    story = StoryDetailSerializer()
+
+    class Meta:
+        model = Chapter
+        fields = ['id', 'story', 'chapter_number', 'content', 'publish_date']
+
+
+class RatingSerializer(serializers.ModelSerializer):
+    slug = serializers.SlugField(write_only=True)
+
+    class Meta:
+        model = Rating
+        fields = ['slug', 'rating_value']
+
+    def create(self, validated_data):
+        slug = validated_data.pop('slug')
+        story = get_object_or_404(Story, slug=slug)
+        rating = Rating.objects.create(story=story, **validated_data)
+        return rating
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['slug'] = instance.story.slug
+        return representation

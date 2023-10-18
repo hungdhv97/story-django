@@ -2,13 +2,16 @@ from django.db.models import Count, Sum, Case, When, Value, BooleanField, Avg, Q
 from django.db.models.functions import Now, Round
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework.generics import ListAPIView
+from rest_framework import status
+from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.generics import RetrieveAPIView
+from rest_framework.response import Response
 
 from story_site.pagination import CustomPagination
 from .const import HOT_STORY_TOTAL_READS, NEW_STORY_DIFF_DATE
-from .models import Story
-from .serializers import StorySerializer, StoryQueryParameterSerializer
+from .models import Story, Chapter, Genre
+from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterResponseSerializer, RatingSerializer, \
+    GenreSerializer
 
 
 class StoryListView(ListAPIView):
@@ -83,3 +86,63 @@ class StoryDetailView(RetrieveAPIView):
         )
         story = get_object_or_404(queryset, slug=slug)
         return story
+
+
+class ChapterListView(ListAPIView):
+    serializer_class = ChapterResponseSerializer
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        slug = self.kwargs.get('slug')
+        story = get_object_or_404(Story, slug=slug)
+        queryset = Chapter.objects.filter(story=story)
+
+        sort = self.request.query_params.get('sort')
+        if sort == 'desc':
+            queryset = queryset.order_by('-chapter_number')
+        else:
+            queryset = queryset.order_by('chapter_number')
+
+        return queryset
+
+
+class ChapterDetailView(RetrieveAPIView):
+    serializer_class = ChapterResponseSerializer
+    lookup_field = 'id'
+
+    def get_object(self):
+        chapter_id = self.kwargs.get('chapterId')
+        chapter = get_object_or_404(Chapter, id=chapter_id)
+        return chapter
+
+
+class RatingCreateView(CreateAPIView):
+    serializer_class = RatingSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+
+class GenreListView(ListAPIView):
+    serializer_class = GenreSerializer
+    pagination_class = None
+    queryset = Genre.objects.all()
+
+
+class StorySearchView(ListAPIView):
+    serializer_class = StorySerializer
+
+    def get_queryset(self):
+        text = self.request.query_params.get('text', '')
+        queryset = Story.objects.filter(
+            Q(title__icontains=text) |
+            Q(author__name__icontains=text)
+        )
+        return queryset
