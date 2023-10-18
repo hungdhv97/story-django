@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework.generics import ListAPIView
 
 from .models import Story
-from .pagination import CustomPagination
+from story_site.pagination import CustomPagination
 from .serializers import StorySerializer, StoryQueryParameterSerializer
 
 

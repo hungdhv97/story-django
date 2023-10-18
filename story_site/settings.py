@@ -139,6 +139,6 @@ cloudinary.config(
 )
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'stories.pagination.CustomPagination',
-    'PAGE_SIZE': 100
+    'DEFAULT_PAGINATION_CLASS': 'story_site.pagination.CustomPagination',
+    'PAGE_SIZE': 5
 }
