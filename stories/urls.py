@@ -11,5 +11,4 @@ urlpatterns = [
     path('ratings/', RatingCreateView.as_view(), name='rating-create'),
     path('genres/', GenreListView.as_view(), name='genre-list'),
     path('search/', StorySearchView.as_view(), name='story-search'),
-
 ]
