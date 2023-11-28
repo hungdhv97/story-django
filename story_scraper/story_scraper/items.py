@@ -4,8 +4,9 @@
 # https://docs.scrapy.org/en/latest/topics/items.html
 
 from scrapy_djangoitem import DjangoItem
+
 from stories.models import Genre
 
 
-class GenreScraperItem(DjangoItem):
+class GenreScrapyItem(DjangoItem):
     django_model = Genre

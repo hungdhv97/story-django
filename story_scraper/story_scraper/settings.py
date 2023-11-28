@@ -91,3 +91,12 @@ ROBOTSTXT_OBEY = True
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+
+
+import os
+import sys
+import django
+
+sys.path.append('/home/sotatek/study/story-django')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'story_site.settings'
+django.setup()
