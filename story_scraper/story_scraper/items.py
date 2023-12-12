@@ -8,5 +8,5 @@ from scrapy_djangoitem import DjangoItem
 from stories.models import Genre
 
 
-class GenreScrapyItem(DjangoItem):
+class GenreItem(DjangoItem):
     django_model = Genre

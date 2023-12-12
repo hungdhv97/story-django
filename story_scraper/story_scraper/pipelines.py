@@ -10,4 +10,5 @@ from itemadapter import ItemAdapter
 
 class StoryScraperPipeline:
     def process_item(self, item, spider):
+        item.save()
         return item

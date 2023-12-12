@@ -62,9 +62,9 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "story_scraper.pipelines.StoryScraperPipeline": 300,
-#}
+ITEM_PIPELINES = {
+   "story_scraper.pipelines.StoryScraperPipeline": 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -99,4 +99,5 @@ import django
 
 sys.path.append('/home/sotatek/study/story-django')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'story_site.settings'
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 django.setup()

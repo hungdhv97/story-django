@@ -2,8 +2,8 @@ from django.core.management.base import BaseCommand
 from scrapy.crawler import CrawlerProcess
 from scrapy.settings import Settings
 
-from story_scraper.story_scraper import settings
-from story_scraper.story_scraper.spiders.story_spider import PropertiesSpider
+from story_scraper import settings
+from story_scraper.spiders.story_spider import PropertiesSpider
 
 
 class Command(BaseCommand):
