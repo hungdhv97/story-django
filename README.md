@@ -1,1 +1,5 @@
 # story-django
+
+### Setup
+
+### Scrapy
