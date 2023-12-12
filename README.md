@@ -5,9 +5,7 @@
 * Tạo environment
     ```shell
     python -m venv venv 
-    ```
-    ```shell
-    pip install -r requirement.txt 
+    pip install -r requirements.txt 
     ```
 * Tạo và thiết lập **Project Django**
     * Tạo Project Django
