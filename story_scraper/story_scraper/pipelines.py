@@ -2,7 +2,8 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-import sqlite3
+
+from django.db import connection
 
 # useful for handling different item types with a single interface
 from stories.models import Genre
@@ -10,18 +11,21 @@ from stories.models import Genre
 
 class StoryScraperPipeline:
     def __init__(self):
-        self.cursor = None
-        self.connection = None
         Genre.objects.all().delete()
-        self.create_connection()
-        self.reindex_all_table()
+        self.reset_auto_increment()
 
-    def create_connection(self):
-        self.connection = sqlite3.connect("data.sqlite3")
-        self.cursor = self.connection.cursor()
-
-    def reindex_all_table(self):
-        self.cursor.execute("""DROP TABLE IF EXISTS sqlite_sequence""")
+    def reset_auto_increment_stories(self):
+        with connection.cursor() as cursor:
+            if connection.vendor == 'postgresql':
+                # Query to get sequences starting with 'stories'
+                cursor.execute("SELECT c.relname FROM pg_class c WHERE c.relkind = 'S' AND c.relname LIKE 'stories%';")
+                sequences = cursor.fetchall()
+                # Reset each sequence
+                for seq in sequences:
+                    cursor.execute(f"ALTER SEQUENCE {seq[0]} RESTART WITH 1;")
+            elif connection.vendor == 'sqlite':
+                # Delete entries for tables starting with 'stories' in sqlite_sequence
+                cursor.execute("DELETE FROM sqlite_sequence WHERE name LIKE 'stories%';")
 
     def process_item(self, item, spider):
         item.save()
