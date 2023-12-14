@@ -10,6 +10,7 @@ class GenreSpider(scrapy.Spider):
 
     custom_settings = {
         'ITEM_PIPELINES': {
+            "story_scraper.story_scraper.pipelines.ResetAutoIncrementPipeline": 200,
             "story_scraper.story_scraper.pipelines.GenrePipeline": 300,
         }
     }

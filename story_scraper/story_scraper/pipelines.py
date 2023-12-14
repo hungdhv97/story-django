@@ -12,6 +12,14 @@ from stories.models import Genre
 class GenrePipeline:
     def __init__(self):
         Genre.objects.all().delete()
+
+    def process_item(self, item, spider):
+        item.save()
+        return item
+
+
+class ResetAutoIncrementPipeline:
+    def open_spider(self, spider):
         self.reset_auto_increment_stories()
 
     def reset_auto_increment_stories(self):
@@ -26,7 +34,3 @@ class GenrePipeline:
             elif connection.vendor == 'sqlite':
                 # Delete entries for tables starting with 'stories' in sqlite_sequence
                 cursor.execute("DELETE FROM sqlite_sequence WHERE name LIKE 'stories%';")
-
-    def process_item(self, item, spider):
-        item.save()
-        return item
