@@ -1,6 +1,6 @@
 import scrapy
 
-from story_scraper.items import GenreItem
+from story_scraper.story_scraper.items import GenreItem
 
 
 class GenreSpider(scrapy.Spider):
