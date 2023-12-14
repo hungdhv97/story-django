@@ -9,7 +9,7 @@ from django.db import connection
 from stories.models import Genre
 
 
-class StoryScraperPipeline:
+class GenrePipeline:
     def __init__(self):
         Genre.objects.all().delete()
         self.reset_auto_increment_stories()
