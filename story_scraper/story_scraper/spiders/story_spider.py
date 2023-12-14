@@ -8,6 +8,12 @@ class GenreSpider(scrapy.Spider):
     allowed_domains = ['truyenfull.vn']
     start_urls = ['https://truyenfull.vn/']
 
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            "story_scraper.story_scraper.pipelines.StoryScraperPipeline": 300,
+        }
+    }
+
     def parse(self, response):
         genres = response.css(".list-truyen.list-cat .row a::text").getall()
 
