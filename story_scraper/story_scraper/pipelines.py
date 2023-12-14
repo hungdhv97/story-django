@@ -12,7 +12,7 @@ from stories.models import Genre
 class StoryScraperPipeline:
     def __init__(self):
         Genre.objects.all().delete()
-        self.reset_auto_increment()
+        self.reset_auto_increment_stories()
 
     def reset_auto_increment_stories(self):
         with connection.cursor() as cursor:
