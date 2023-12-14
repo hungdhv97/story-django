@@ -1,16 +1,16 @@
 import scrapy
 
-from story_scraper.story_scraper.items import GenreItem
+from story_scraper.story_scraper.items import AuthorItem
 
 
-class GenreSpider(scrapy.Spider):
-    name = 'genre_spider'
+class AuthorSpider(scrapy.Spider):
+    name = 'author_spider'
     allowed_domains = ['truyenfull.vn']
-    start_urls = ['https://truyenfull.vn/']
+    start_urls = ['https://truyenfull.vn/danh-sach/truyen-hot/']
 
     custom_settings = {
         'ITEM_PIPELINES': {
-            "story_scraper.story_scraper.pipelines.StoryScraperPipeline": 300,
+            "story_scraper.story_scraper.pipelines.AuthorPipeline": 300,
         }
     }
 
@@ -18,6 +18,6 @@ class GenreSpider(scrapy.Spider):
         genres = response.css(".list-truyen.list-cat .row a::text").getall()
 
         for genre in genres:
-            genre_item = GenreItem()
+            genre_item = AuthorItem()
             genre_item['name'] = genre
             yield genre_item
