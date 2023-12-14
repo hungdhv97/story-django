@@ -55,8 +55,7 @@
     * Chạy scrapy
         * Chạy spider
       ```shell
-      cd story_scraper
-      scrapy crawl story_spider
+      scrapy crawl genre_spider
       ```
 
 Cài đặt Pipelines: Trong settings.py của Scrapy, thiết lập pipeline để sử dụng DjangoItem.

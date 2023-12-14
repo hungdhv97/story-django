@@ -4,7 +4,7 @@ from story_scraper.story_scraper.items import GenreItem
 
 
 class GenreSpider(scrapy.Spider):
-    name = 'story_spider'
+    name = 'genre_spider'
     allowed_domains = ['truyenfull.vn']
     start_urls = ['https://truyenfull.vn/']
 
