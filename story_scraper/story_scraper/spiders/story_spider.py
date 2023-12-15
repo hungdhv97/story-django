@@ -34,10 +34,10 @@ class StorySpider(scrapy.Spider):
             yield response.follow(next_page, callback=self.parse)
 
     def parse_story(self, response):
-        self.parse_genre(response)
-        self.parse_author(response)
+        self.save_genre(response)
+        self.save_author(response)
 
-    def parse_genre(self, response):
+    def save_genre(self, response):
         genres = response.css('.col-truyen-main .info-holder .info a[itemprop="genre"]::text').getall()
         for genre in genres:
             genre_item = GenreItem()
@@ -46,7 +46,7 @@ class StorySpider(scrapy.Spider):
             if existing_author is None:
                 genre_item.save()
 
-    def parse_author(self, response):
+    def save_author(self, response):
         author_item = AuthorItem()
         author_name = response.css('.col-truyen-main .info-holder .info a[itemprop="author"]::text').get()
         author_item['name'] = author_name.replace('\u200B', '').strip()
