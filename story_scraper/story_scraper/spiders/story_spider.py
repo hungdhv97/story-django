@@ -1,6 +1,8 @@
+from datetime import datetime
+
 import scrapy
 
-from stories.models import Author, Genre
+from stories.models import Author, Genre, Story
 from story_scraper.story_scraper.const import MAX_PAGES
 
 
@@ -33,39 +35,45 @@ class StorySpider(scrapy.Spider):
             yield response.follow(next_page, callback=self.parse)
 
     def parse_story(self, response):
-        self.save_genre(response)
-        self.save_author(response)
-        self.save_story(response)
+        genres = self.save_genres(response)
+        author = self.save_author(response)
+        story = self.save_story(response, author)
 
-    def save_genre(self, response):
+    def save_genres(self, response):
+        list_genres = []
         genres = response.css('.col-truyen-main .info-holder .info a[itemprop="genre"]::text').getall()
         for genre in genres:
             existing_genre = Genre.objects.filter(name=genre.strip()).first()
-            if existing_genre is None:
-                Genre(name=genre).save()
+            if existing_genre is not None:
+                list_genres.append(existing_genre)
+            else:
+                genre = Genre(name=genre)
+                genre.save()
+                list_genres.append(genre)
+        return list_genres
 
     def save_author(self, response):
         author_name = response.css('.col-truyen-main .info-holder .info a[itemprop="author"]::text').get()
         existing_author = Author.objects.filter(name=author_name.replace('\u200B', '').strip()).first()
-        if existing_author is None:
-            Author(name=author_name).save()
+        if existing_author is not None:
+            return existing_author
+        author = Author(name=author_name)
+        author.save()
+        return author
 
-    # def save_story(self, response):
-    #     story_item = Story()
-    #
-    #     # Extract story details
-    #     story_item['title'] = response.css('.story-title::text').get().strip()
-    #     story_item['description'] = response.css('.story-description::text').get().strip()
-    #
-    #     # Extract author
-    #     author_name = response.css('.author-name::text').get().strip()
-    #     author = Author.objects.filter(name=author_name).first()
-    #     story_item['author'] = author
-    #
-    #     # Extract and associate genres
-    #     genre_names = response.css('.genre-list .genre::text').getall()
-    #     genres = [Genre.objects.filter(name=gn.strip()).first() for gn in genre_names]
-    #     story_item['genres'] = genres
-    #
-    #     # Save the story item
-    #     story_item.save()
+    def save_story(self, response, author):
+        title = response.css('.col-truyen-main h3.title::text').get()
+        description = ' '.join(response.css('.col-truyen-main .desc-text ::text').getall()).replace("\u00A0", " ")
+        created_date = datetime.now().strftime("%Y-%m-%d")
+        status_text = response.css('.col-truyen-main .info-holder .info span.text-primary::text').get()
+        status = 'ONGOING' if status_text == "Đang ra" else "COMPLETED"
+        source_text = response.css('.col-truyen-main .info-holder .info span.source::text').get()
+        source = source_text if source_text else ""
+        cover_photo = response.css('.col-truyen-main .info-holder img::attr(src)').get()
+
+        existing_story = Story.objects.filter(slug="slug").first()
+        if existing_story is not None:
+            return existing_story
+        return Story(title=title, description=description, author_id=author.id, created_date=created_date,
+                     status=status,
+                     source=source, cover_photo=cover_photo).save()
