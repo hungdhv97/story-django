@@ -36,6 +36,7 @@ class StorySpider(scrapy.Spider):
     def parse_story(self, response):
         self.save_genre(response)
         self.save_author(response)
+        self.save_story(response)
 
     def save_genre(self, response):
         genres = response.css('.col-truyen-main .info-holder .info a[itemprop="genre"]::text').getall()
@@ -53,3 +54,23 @@ class StorySpider(scrapy.Spider):
         existing_author = Author.objects.filter(name=author_item['name']).first()
         if existing_author is None:
             author_item.save()
+
+    def save_story(self, response):
+        story_item = StoryItem()
+
+        # Extract story details
+        story_item['title'] = response.css('.story-title::text').get().strip()
+        story_item['description'] = response.css('.story-description::text').get().strip()
+
+        # Extract author
+        author_name = response.css('.author-name::text').get().strip()
+        author = Author.objects.filter(name=author_name).first()
+        story_item['author'] = author
+
+        # Extract and associate genres
+        genre_names = response.css('.genre-list .genre::text').getall()
+        genres = [Genre.objects.filter(name=gn.strip()).first() for gn in genre_names]
+        story_item['genres'] = genres
+
+        # Save the story item
+        story_item.save()

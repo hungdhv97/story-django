@@ -8,19 +8,6 @@ from django.db import connection
 from stories.models import Genre, Author, StoryGenre, Rating, ReadingStats, Story
 
 
-class GenrePipeline:
-    def process_item(self, item, spider):
-        existing_genre = Genre.objects.filter(name=item['name']).first()
-        if existing_genre is None:
-            item.save()
-        return item
-
-
-class AuthorPipeline:
-    def process_item(self, item, spider):
-        return item
-
-
 class ClearDatabasePipeline:
     def open_spider(self, spider):
         self.clear_database()
