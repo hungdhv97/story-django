@@ -1,9 +1,9 @@
 from django.core.management.base import BaseCommand
 from scrapy.crawler import CrawlerProcess
 from scrapy.settings import Settings
+from story_scraper.story_scraper.spiders.genre_spider import GenreSpider
 
 from story_scraper.story_scraper import settings
-from story_scraper.story_scraper.spiders.genre_spider import GenreSpider
 
 
 class Command(BaseCommand):

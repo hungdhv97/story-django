@@ -5,22 +5,34 @@
 
 from django.db import connection
 
-# useful for handling different item types with a single interface
-from stories.models import Genre
+from stories.models import Genre, Author, StoryGenre, Rating, ReadingStats, Story
 
 
 class GenrePipeline:
-    def __init__(self):
-        Genre.objects.all().delete()
-
     def process_item(self, item, spider):
-        item.save()
+        existing_genre = Genre.objects.filter(name=item['name']).first()
+        if existing_genre is None:
+            item.save()
         return item
 
 
-class ResetAutoIncrementPipeline:
+class AuthorPipeline:
+    def process_item(self, item, spider):
+        return item
+
+
+class ClearDatabasePipeline:
     def open_spider(self, spider):
+        self.clear_database()
         self.reset_auto_increment_stories()
+
+    def clear_database(self):
+        Genre.objects.all().delete()
+        Author.objects.all().delete()
+        Story.objects.all().delete()
+        StoryGenre.objects.all().delete()
+        Rating.objects.all().delete()
+        ReadingStats.objects.all().delete()
 
     def reset_auto_increment_stories(self):
         with connection.cursor() as cursor:
