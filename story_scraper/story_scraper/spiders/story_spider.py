@@ -5,7 +5,7 @@ from datetime import datetime
 import scrapy
 
 from stories.models import Author, Genre, Story, Status, StoryGenre, Chapter, Rating, ReadingStats
-from story_scraper.story_scraper.const import MAX_PAGES_STORIES, MAX_PAGES_CHAPTERS
+from story_scraper.story_scraper.const import MAX_PAGES_STORIES
 
 
 class StorySpider(scrapy.Spider):
@@ -19,10 +19,10 @@ class StorySpider(scrapy.Spider):
         }
     }
 
-    def __init__(self):
-        self.current_page_story = 0
-
     def parse(self, response):
+        page_number = response.meta.get('page_number', 1)
+        if page_number > MAX_PAGES_STORIES:
+            return
         story_urls = response.css('.col-truyen-main .list-truyen .row h3 a::attr(href)').getall()
 
         for story_url in story_urls:
@@ -32,9 +32,8 @@ class StorySpider(scrapy.Spider):
             '//div[contains(@class, "pagination")]//li[contains(@class, "active")]/following-sibling::'
             'li[1][not(contains(@class, "dropup"))]/a/@href').get()
 
-        self.current_page_story += 1
-        if next_page is not None and self.current_page_story < MAX_PAGES_STORIES:
-            yield response.follow(next_page, callback=self.parse)
+        if next_page is not None:
+            yield response.follow(next_page, callback=self.parse, meta={'page_number': page_number + 1})
 
     def parse_story(self, response):
         genres = self.save_genres(response)
@@ -43,7 +42,7 @@ class StorySpider(scrapy.Spider):
         self.save_story_genres(story, genres)
         self.save_rating(response, story)
         self.save_reading_stats(response, story)
-        yield from self.parse_chapters(response, story, 1)
+        yield from self.parse_chapters(response, story)
 
     def save_genres(self, response):
         list_genres = []
@@ -114,7 +113,7 @@ class StorySpider(scrapy.Spider):
             rating.save()
 
     def save_reading_stats(self, response, story):
-        read_count = random.randint(1000, 100000)
+        read_count = random.randint(100, 100000)
         date = datetime.now().strftime("%Y-%m-%d")
 
         existing_reading_stats = ReadingStats.objects.filter(story_id=story.id, date=date).first()
@@ -122,8 +121,9 @@ class StorySpider(scrapy.Spider):
             reading_stats = ReadingStats(story_id=story.id, read_count=read_count, date=date)
             reading_stats.save()
 
-    def parse_chapters(self, response, story, page_chapter):
-        if page_chapter > MAX_PAGES_CHAPTERS:
+    def parse_chapters(self, response, story):
+        page_number = response.meta.get('page_number', 1)
+        if page_number > MAX_PAGES_STORIES:
             return
         chapter_urls = response.css('.col-truyen-main #list-chapter .row ul li a::attr(href)').getall()
 
@@ -136,7 +136,7 @@ class StorySpider(scrapy.Spider):
 
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse_chapters,
-                                  cb_kwargs={'story': story, 'page_chapter': page_chapter + 1})
+                                  cb_kwargs={'story': story}, meta={'page_number': page_number + 1})
 
     def parse_chapter(self, response, story):
         chapter = self.save_chapter(response, story)
