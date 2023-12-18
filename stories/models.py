@@ -18,12 +18,13 @@ class Genre(models.Model):
         return self.name
 
 
-class Story(models.Model):
-    class Status(models.TextChoices):
-        ONGOING = 'ongoing', 'Ongoing'
-        COMPLETED = 'completed', 'Completed'
-        DROPPED = 'dropped', 'Dropped'
+class Status(models.TextChoices):
+    ONGOING = 'ongoing', 'Ongoing'
+    COMPLETED = 'completed', 'Completed'
+    DROPPED = 'dropped', 'Dropped'
 
+
+class Story(models.Model):
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)

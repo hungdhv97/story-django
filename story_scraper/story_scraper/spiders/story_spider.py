@@ -1,8 +1,9 @@
+import re
 from datetime import datetime
 
 import scrapy
 
-from stories.models import Author, Genre, Story
+from stories.models import Author, Genre, Story, Status
 from story_scraper.story_scraper.const import MAX_PAGES
 
 
@@ -63,17 +64,33 @@ class StorySpider(scrapy.Spider):
 
     def save_story(self, response, author):
         title = response.css('.col-truyen-main h3.title::text').get()
-        description = ' '.join(response.css('.col-truyen-main .desc-text ::text').getall()).replace("\u00A0", " ")
+        description = re.sub(
+            r'<[^>]+>',
+            '',
+            re.sub(
+                r'<br\s*/?>',
+                '\n',
+                response.css('.col-truyen-main .desc-text').get())
+        ).replace("\u00A0", " ")
         created_date = datetime.now().strftime("%Y-%m-%d")
-        status_text = response.css('.col-truyen-main .info-holder .info span.text-primary::text').get()
-        status = 'ONGOING' if status_text == "Đang ra" else "COMPLETED"
-        source_text = response.css('.col-truyen-main .info-holder .info span.source::text').get()
-        source = source_text if source_text else ""
+        # Mapping of conditions to statuses
+        status_ongoing = response.css('.col-truyen-main .info-holder .info span.text-primary::text').get()
+        status_success = response.css('.col-truyen-main .info-holder .info span.text-success::text').get()
+        status_conditions = {
+            Status.ONGOING: status_ongoing is not None,
+            Status.COMPLETED: status_success is not None,
+        }
+        # Find the first true condition and set the status, default to DROPPED
+        status = next((status for status, condition in status_conditions.items() if condition), Status.DROPPED)
+        story_source = response.css('.col-truyen-main .info-holder .info span.source::text').get()
+        source = story_source or ""
         cover_photo = response.css('.col-truyen-main .info-holder img::attr(src)').get()
 
         existing_story = Story.objects.filter(slug="slug").first()
         if existing_story is not None:
             return existing_story
-        return Story(title=title, description=description, author_id=author.id, created_date=created_date,
-                     status=status,
-                     source=source, cover_photo=cover_photo).save()
+        story = Story(title=title, description=description, author_id=author.id, created_date=created_date,
+                      status=status,
+                      source=source, cover_photo=cover_photo)
+        story.save()
+        return story
