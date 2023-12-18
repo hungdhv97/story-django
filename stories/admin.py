@@ -32,7 +32,7 @@ class StoryGenreAdmin(admin.ModelAdmin):
 
 
 class ChapterAdmin(admin.ModelAdmin):
-    list_display = ('id', 'story_id', 'chapter_number', 'content', 'publish_date')
+    list_display = ('id', 'story_id', 'title', 'content', 'published_date')
 
 
 class RatingAdmin(admin.ModelAdmin):

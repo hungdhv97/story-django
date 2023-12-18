@@ -3,8 +3,8 @@ from datetime import datetime
 
 import scrapy
 
-from stories.models import Author, Genre, Story, Status, StoryGenre
-from story_scraper.story_scraper.const import MAX_PAGES
+from stories.models import Author, Genre, Story, Status, StoryGenre, Chapter
+from story_scraper.story_scraper.const import MAX_PAGES_STORIES, MAX_PAGES_CHAPTERS
 
 
 class StorySpider(scrapy.Spider):
@@ -19,7 +19,7 @@ class StorySpider(scrapy.Spider):
     }
 
     def __init__(self):
-        self.current_page = 0
+        self.current_page_story = 0
 
     def parse(self, response):
         story_urls = response.css('.col-truyen-main .list-truyen .row h3 a::attr(href)').getall()
@@ -31,8 +31,8 @@ class StorySpider(scrapy.Spider):
             '//div[contains(@class, "pagination")]//li[contains(@class, "active")]/following-sibling::'
             'li[1][not(contains(@class, "dropup"))]/a/@href').get()
 
-        self.current_page += 1
-        if next_page is not None and self.current_page < MAX_PAGES:
+        self.current_page_story += 1
+        if next_page is not None and self.current_page_story < MAX_PAGES_STORIES:
             yield response.follow(next_page, callback=self.parse)
 
     def parse_story(self, response):
@@ -40,6 +40,7 @@ class StorySpider(scrapy.Spider):
         author = self.save_author(response)
         story = self.save_story(response, author)
         self.save_story_genres(story, genres)
+        yield from self.save_chapters(response, story, 1)
 
     def save_genres(self, response):
         list_genres = []
@@ -99,3 +100,30 @@ class StorySpider(scrapy.Spider):
     def save_story_genres(self, story, genres):
         for genre in genres:
             StoryGenre(story_id=story.id, genre_id=genre.id).save()
+
+    def save_chapters(self, response, story, page_chapter):
+        if page_chapter > MAX_PAGES_CHAPTERS:
+            return
+        chapter_urls = response.css('.col-truyen-main #list-chapter .row ul li a::attr(href)').getall()
+
+        for chapter_url in chapter_urls:
+            yield response.follow(chapter_url, callback=self.save_chapter, cb_kwargs={'story': story})
+
+        next_page = response.xpath(
+            '//ul[contains(@class, "pagination")]//li[contains(@class, "active")]/following-sibling::'
+            'li[1][not(contains(@class, "dropup"))]/a/@href').get()
+
+        if next_page is not None:
+            yield response.follow(next_page, callback=self.save_chapters,
+                                  cb_kwargs={'story': story, 'page_chapter': page_chapter + 1})
+
+    def save_chapter(self, response, story):
+        title = response.css(".chapter-title::text").get()
+        content = "\n".join(response.css(".chapter-c::text").getall())
+        published_date = datetime.now().strftime("%Y-%m-%d")
+
+        existing_chapter = Chapter.objects.filter(story_id=story.id, title=title).first()
+        if existing_chapter is None:
+            chapter = Chapter(story_id=story.id, title=title, content=content,
+                              published_date=published_date)
+            chapter.save()

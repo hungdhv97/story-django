@@ -67,12 +67,12 @@ class StoryGenre(models.Model):
 
 class Chapter(models.Model):
     story = models.ForeignKey(Story, on_delete=models.CASCADE)
-    chapter_number = models.IntegerField()
+    title = models.CharField(max_length=255, blank=True)
     content = models.TextField(blank=True)
-    publish_date = models.DateField()
+    published_date = models.DateField()
 
     def __str__(self):
-        return f'{self.chapter_number}'
+        return f'{self.title}'
 
 
 class Rating(models.Model):
