@@ -3,7 +3,7 @@ from datetime import datetime
 
 import scrapy
 
-from stories.models import Author, Genre, Story, Status
+from stories.models import Author, Genre, Story, Status, StoryGenre
 from story_scraper.story_scraper.const import MAX_PAGES
 
 
@@ -39,6 +39,7 @@ class StorySpider(scrapy.Spider):
         genres = self.save_genres(response)
         author = self.save_author(response)
         story = self.save_story(response, author)
+        self.save_story_genres(story, genres)
 
     def save_genres(self, response):
         list_genres = []
@@ -94,3 +95,7 @@ class StorySpider(scrapy.Spider):
                       source=source, cover_photo=cover_photo)
         story.save()
         return story
+
+    def save_story_genres(self, story, genres):
+        for genre in genres:
+            StoryGenre(story_id=story.id, genre_id=genre.id).save()
