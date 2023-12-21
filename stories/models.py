@@ -1,4 +1,6 @@
+import requests
 from cloudinary.models import CloudinaryField
+from cloudinary.uploader import upload
 from django.db import models
 from django.utils.text import slugify
 from unidecode import unidecode
@@ -48,6 +50,14 @@ class Story(models.Model):
             num += 1
 
         self.slug = unique_slug
+
+        if self.cover_photo and self.cover_photo.startswith('http'):
+            image_url = self.cover_photo
+            response = requests.get(image_url)
+            if response.status_code == 200:
+                upload_result = upload(response.content)
+                self.cover_photo = upload_result.get('url')
+
         super().save(*args, **kwargs)
 
     def __str__(self):
