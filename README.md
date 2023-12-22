@@ -43,10 +43,7 @@
   scrapy startproject story_scraper
   ```
     * Cài đặt pipelines
-        * Thiết lập pipeline sử dụng `DjangoItem` trong file `settings.py`
-* Sử dụng DjangoItem
-    * Tạo DjangoItem trong file `items.py` và định nghĩa các trường trong DjangoItem tương ứng với các fields trong
-      Django models
+        * Tạo pipeline clear database
 * Viết spider
     * Tạo spider để crawl dữ liệu
     * Lưu Dữ liệu vào Django Database:
@@ -55,12 +52,9 @@
     * Chạy scrapy
         * Chạy spider
       ```shell
-      scrapy crawl genre_spider
+      scrapy crawl story_spider
       ```
-
-Cài đặt Pipelines: Trong settings.py của Scrapy, thiết lập pipeline để sử dụng DjangoItem.
-
-* Cấu hình **Django** trong dự án **Scrapy**
+* Cấu hình **Django Project (story_site)**  trong file `settings.py` dự án **Scrapy**
 
 ```python
 import os
@@ -69,38 +63,22 @@ import django
 
 sys.path.append('/home/sotatek/study/story-django')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'story_site.settings'
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 django.setup()
 ```
 
-* Tạo **DjangoItem**
+* Cấu hình app **Scrapy (story_scraper)** trong file `settings.py` của dự án **Django Project (story_site)**
 
 ```python
-from scrapy_djangoitem import DjangoItem
-
-from stories.models import Genre
-
-
-class GenreItem(DjangoItem):
-    django_model = Genre
+INSTALLED_APPS = [
+    ...,
+    'story_scraper'
+]
 ```
 
-* Tạo **spider**
-
-```python
-
-```
-
-* Lưu dữ liệu
-    * **JSON**
+* Thêm **Django Command** run spider
+    * Tạo file management/commands/crawl.py trong project **Scrapy (story_scraper)**
       ```shell
-      scrapy crawl spider_story -O stories.json
-      ```
-    * **CSV**
-      ```shell
-      scrapy crawl spider_story -O stories.csv
-      ```
-    * Đã settings
-      ```shell
-      scrapy crawl spider_story
+      python manage.py crawl
       ```
     
