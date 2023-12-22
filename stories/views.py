@@ -99,9 +99,9 @@ class ChapterListView(ListAPIView):
 
         sort = self.request.query_params.get('sort')
         if sort == 'desc':
-            queryset = queryset.order_by('-chapter_number')
+            queryset = queryset.order_by('-title')
         else:
-            queryset = queryset.order_by('chapter_number')
+            queryset = queryset.order_by('title')
 
         return queryset
 

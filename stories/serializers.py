@@ -19,7 +19,7 @@ class GenreSerializer(serializers.ModelSerializer):
 class ChapterDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chapter
-        fields = ['id', 'chapter_number', 'publish_date']
+        fields = ['id', 'title', 'publish_date']
 
 
 class StorySerializer(serializers.ModelSerializer):
@@ -45,7 +45,7 @@ class StorySerializer(serializers.ModelSerializer):
         return GenreSerializer(genres, many=True).data
 
     def get_latest_chapter(self, obj):
-        latest_chapter = Chapter.objects.filter(story=obj).order_by('-chapter_number').first()
+        latest_chapter = Chapter.objects.filter(story=obj).order_by('-title').first()
         return ChapterDetailSerializer(latest_chapter).data if latest_chapter else None
 
 
@@ -68,7 +68,7 @@ class ChapterResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Chapter
-        fields = ['id', 'story', 'chapter_number', 'content', 'publish_date']
+        fields = ['id', 'story', 'title', 'content', 'publish_date']
 
 
 class RatingSerializer(serializers.ModelSerializer):
