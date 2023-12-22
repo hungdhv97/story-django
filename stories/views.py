@@ -8,7 +8,7 @@ from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 
 from story_site.pagination import CustomPagination
-from .const import HOT_STORY_TOTAL_READS, NEW_STORY_DIFF_DATE
+from .consts import HOT_STORY_TOTAL_READS, NEW_STORY_DIFF_DATE
 from .models import Story, Chapter, Genre
 from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterResponseSerializer, RatingSerializer, \
     GenreSerializer

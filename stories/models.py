@@ -1,9 +1,13 @@
-import requests
+import hashlib
+
 from cloudinary.models import CloudinaryField
 from cloudinary.uploader import upload
 from django.db import models
 from django.utils.text import slugify
 from unidecode import unidecode
+
+from .consts import CLOUDINARY_FOLDER_NAME
+from .utils import get_url_from_cloudinary_storage
 
 
 class Author(models.Model):
@@ -40,6 +44,12 @@ class Story(models.Model):
     cover_photo = CloudinaryField('image')
     slug = models.SlugField(max_length=255, unique=True, editable=False, blank=True)
 
+    def generate_cover_photo_public_id(self, original_url):
+        hash_digest = hashlib.sha256(original_url.encode()).hexdigest()[:10]
+        image_folder = f"{CLOUDINARY_FOLDER_NAME}/images"
+        public_id = f"{image_folder}/{self.slug}-{hash_digest}"
+        return public_id
+
     def save(self, *args, **kwargs):
         original_slug = slugify(unidecode(self.title))
         unique_slug = original_slug
@@ -52,12 +62,16 @@ class Story(models.Model):
         self.slug = unique_slug
 
         if self.cover_photo and self.cover_photo.startswith('http'):
-            image_url = self.cover_photo
-            response = requests.get(image_url)
-            if response.status_code == 200:
-                upload_result = upload(response.content)
+            public_id = self.generate_cover_photo_public_id(self.cover_photo)
+            image_url = get_url_from_cloudinary_storage(public_id)
+            if image_url is None:
+                upload_result = upload(
+                    self.cover_photo,
+                    public_id=public_id
+                )
                 self.cover_photo = upload_result.get('url')
-
+            else:
+                self.cover_photo = image_url
         super().save(*args, **kwargs)
 
     def __str__(self):

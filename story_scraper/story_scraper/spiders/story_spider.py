@@ -5,7 +5,7 @@ from datetime import datetime
 import scrapy
 
 from stories.models import Author, Genre, Story, Status, StoryGenre, Chapter, Rating, ReadingStats
-from story_scraper.story_scraper.const import MAX_PAGES_STORIES, MAX_PAGES_CHAPTERS
+from story_scraper.story_scraper.consts import MAX_PAGES_STORIES, MAX_PAGES_CHAPTERS
 
 
 class StorySpider(scrapy.Spider):
@@ -143,7 +143,7 @@ class StorySpider(scrapy.Spider):
 
     def save_chapter(self, response, story):
         title = response.css(".chapter-title::text").get()
-        content = "\n".join(response.css(".chapter-c::text").getall()).replace("\u00A0", " ")
+        content = "\n".join(response.css(".chapter-c ::text").getall()).replace("\u00A0", " ")
         published_date = datetime.now().strftime("%Y-%m-%d")
         existing_chapter = Chapter.objects.filter(story_id=story.id, title=title).first()
         if existing_chapter is not None:
