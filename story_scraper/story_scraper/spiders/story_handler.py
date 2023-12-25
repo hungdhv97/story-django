@@ -1,12 +1,66 @@
+import math
 import random
 import re
 from datetime import datetime
+
+from scrapy import Request
 
 from stories.models import Author, Genre, Story, Status, StoryGenre, Chapter, Rating, ReadingStats
 from story_scraper.story_scraper.consts import MAX_PAGES_CHAPTERS
 
 
+class ChapterHandler:
+    def __init__(self, story, base_url, from_chapter_index, to_chapter_index):
+        self.story = story
+        self.base_url = base_url
+        self.from_chapter_index = from_chapter_index
+        self.to_chapter_index = to_chapter_index
+        self.chapters_per_page = None
+
+    def start_requests(self):
+        yield Request(url=self.base_url.format(1), callback=self.parse_initial)
+
+    def parse_initial(self, response):
+        chapters = response.css('.col-truyen-main #list-chapter .row ul li a::attr(href)')
+        self.chapters_per_page = len(chapters)
+        from_page = math.ceil(self.from_chapter_index / self.chapters_per_page)
+        yield Request(url=self.base_url.format(from_page), callback=self.parse)
+
+    def parse(self, response):
+        page_number = int(response.url.split('trang-')[-1].split('/')[0])
+        start_index_on_page = (self.from_chapter_index - 1) % self.chapters_per_page if page_number == math.ceil(
+            self.from_chapter_index / self.chapters_per_page) else 0
+        end_index_on_page = (self.to_chapter_index - 1) % self.chapters_per_page if page_number == math.ceil(
+            self.to_chapter_index / self.chapters_per_page) else (self.chapters_per_page - 1)
+
+        chapter_urls = response.css('.col-truyen-main #list-chapter .row ul li a::attr(href)').getall()
+        for chapter_url in chapter_urls[start_index_on_page:end_index_on_page + 1]:
+            yield response.follow(chapter_url, callback=self.parse_chapter)
+
+        if page_number * self.chapters_per_page < self.to_chapter_index:
+            yield Request(url=self.base_url.format(page_number + 1), callback=self.parse)
+
+    def parse_chapter(self, response):
+        self.save_chapter(response)
+
+    def save_chapter(self, response):
+        title = ''.join(response.css(".chapter-title ::text").getall())
+        content = "\n".join(response.css(".chapter-c ::text").getall()).replace("\u00A0", " ")
+        published_date = datetime.now().strftime("%Y-%m-%d")
+        existing_chapter = Chapter.objects.filter(story_id=self.story.id, title=title).first()
+        if existing_chapter is not None:
+            return existing_chapter
+        chapter = Chapter(story_id=self.story.id, title=title, content=content,
+                          published_date=published_date)
+        chapter.save()
+        return chapter
+
+
 class StoryHandler:
+    def __init__(self, from_chapter_index, to_chapter_index):
+        self.from_chapter_index = from_chapter_index
+        self.to_chapter_index = to_chapter_index
+
     def parse_story(self, response):
         genres = self.save_genres(response)
         author = self.save_author(response)
@@ -14,7 +68,9 @@ class StoryHandler:
         self.save_story_genres(story, genres)
         self.save_rating(response, story)
         self.save_reading_stats(response, story)
-        yield from self.parse_chapters(response, story)
+        chapter_base_url = response.url + '/trang-{}'
+        chapter_handler = ChapterHandler(story, chapter_base_url, self.from_chapter_index, self.to_chapter_index)
+        yield from chapter_handler.start_requests()
 
     def save_genres(self, response):
         list_genres = []

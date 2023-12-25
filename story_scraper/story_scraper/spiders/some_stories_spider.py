@@ -9,7 +9,8 @@ class SomeStoriesSpider(scrapy.Spider):
     custom_settings = {
         'ITEM_PIPELINES': {
             "story_scraper.story_scraper.pipelines.ClearDatabasePipeline": 300,
-        }
+        },
+        'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter',  # Disable duplicate filter
     }
 
     def __init__(self, story_urls, *args, **kwargs):
