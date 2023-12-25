@@ -68,7 +68,7 @@ class StoryHandler:
         self.save_story_genres(story, genres)
         self.save_rating(response, story)
         self.save_reading_stats(response, story)
-        chapter_base_url = response.url + '/trang-{}'
+        chapter_base_url = response.url + 'trang-{}'
         chapter_handler = ChapterHandler(story, chapter_base_url, self.from_chapter_index, self.to_chapter_index)
         yield from chapter_handler.start_requests()
 
