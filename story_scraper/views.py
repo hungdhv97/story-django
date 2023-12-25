@@ -1,5 +1,6 @@
+import subprocess
+
 from django.contrib import messages
-from django.core.management import call_command
 from django.shortcuts import render, redirect
 
 from .forms import StoryCrawlForm
@@ -15,12 +16,17 @@ def crawl_stories_view(request):
             to_chapter_index = form.cleaned_data['to_chapter_index']
 
             try:
-                # Run the command
-                call_command('crawl_list_stories',
-                             from_story_index=from_story_index,
-                             to_story_index=to_story_index,
-                             from_chapter_index=from_chapter_index,
-                             to_chapter_index=to_chapter_index)
+                # Prepare the management command with its arguments
+                command = [
+                    'python', 'manage.py', 'crawl_list_stories',
+                    '--from-story-index', str(from_story_index),
+                    '--to-story-index', str(to_story_index),
+                    '--from-chapter-index', str(from_chapter_index),
+                    '--to-chapter-index', str(to_chapter_index)
+                ]
+
+                # Run the command asynchronously
+                subprocess.Popen(command)
 
                 messages.success(request, 'Stories crawl initiated successfully.')
             except Exception as e:
