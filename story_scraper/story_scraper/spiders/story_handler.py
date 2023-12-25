@@ -44,7 +44,7 @@ class ChapterHandler:
         self.save_chapter(response)
 
     def save_chapter(self, response):
-        title = ''.join(response.css(".chapter-title ::text").getall())
+        title = ''.join(response.css(".chapter-title ::text").getall()).replace('\u200B', '')
         content = "\n".join(response.css(".chapter-c ::text").getall()).replace("\u00A0", " ")
         published_date = datetime.now().strftime("%Y-%m-%d")
         existing_chapter = Chapter.objects.filter(story_id=self.story.id, title=title).first()

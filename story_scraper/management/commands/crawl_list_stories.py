@@ -10,10 +10,10 @@ class Command(BaseCommand):
     help = 'Crawl list of stories'
 
     def add_arguments(self, parser):
-        parser.add_argument('from_story_index', type=int, help='from story index')
-        parser.add_argument('to_story_index', type=int, help='to story index')
-        parser.add_argument('from_chapter_index', type=int, help='from chapter index')
-        parser.add_argument('to_chapter_index', type=int, help='to chapter index')
+        parser.add_argument('--from-story-index', type=int, default=1, help='from story index')
+        parser.add_argument('--to-story-index', type=int, default=10, help='to story index')
+        parser.add_argument('--from-chapter-index', type=int, default=1, help='from chapter index')
+        parser.add_argument('--to-chapter-index', type=int, default=20, help='to chapter index')
 
     def handle(self, *args, **options):
         from_story_index = options['from_story_index']

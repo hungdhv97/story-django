@@ -13,10 +13,10 @@ class SomeStoriesSpider(scrapy.Spider):
         'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter',  # Disable duplicate filter
     }
 
-    def __init__(self, story_urls, *args, **kwargs):
+    def __init__(self, story_urls, from_chapter_index, to_chapter_index, *args, **kwargs):
         super(SomeStoriesSpider, self).__init__(*args, **kwargs)
         self.start_urls = story_urls.split(',') if story_urls else []
-        self.story_handler = StoryHandler()
+        self.story_handler = StoryHandler(from_chapter_index, to_chapter_index)
 
     def parse(self, response):
         yield from self.story_handler.parse_story(response)
