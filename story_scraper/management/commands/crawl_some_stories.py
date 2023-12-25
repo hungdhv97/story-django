@@ -1,9 +1,9 @@
 from django.core.management.base import BaseCommand
 from scrapy.crawler import CrawlerProcess
 from scrapy.settings import Settings
+from story_scraper.story_scraper.spiders.one_story_spider import SomeStoriesSpider
 
 from story_scraper.story_scraper import settings as my_settings
-from story_scraper.story_scraper.spiders.one_story_spider import OneStorySpider
 
 
 class Command(BaseCommand):
@@ -20,5 +20,5 @@ class Command(BaseCommand):
 
         process = CrawlerProcess(settings=crawler_settings)
 
-        process.crawl(OneStorySpider, story_urls=story_urls)
+        process.crawl(SomeStoriesSpider, story_urls=story_urls)
         process.start()

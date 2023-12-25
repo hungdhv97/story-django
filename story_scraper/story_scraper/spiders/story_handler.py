@@ -95,8 +95,6 @@ class StoryHandler:
 
     def parse_chapters(self, response, story):
         page_number = response.meta.get('page_number', 1)
-        if page_number > MAX_PAGES_CHAPTERS:
-            return
         chapter_urls = response.css('.col-truyen-main #list-chapter .row ul li a::attr(href)').getall()
 
         for chapter_url in chapter_urls:
@@ -106,7 +104,7 @@ class StoryHandler:
             '//ul[contains(@class, "pagination")]//li[contains(@class, "active")]/following-sibling::'
             'li[1][not(contains(@class, "dropup"))]/a/@href').get()
 
-        if next_page is not None:
+        if next_page is not None and page_number < MAX_PAGES_CHAPTERS:
             yield response.follow(next_page, callback=self.parse_chapters,
                                   cb_kwargs={'story': story}, meta={'page_number': page_number + 1})
 

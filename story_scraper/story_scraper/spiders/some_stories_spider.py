@@ -3,8 +3,8 @@ import scrapy
 from story_scraper.story_scraper.spiders.story_handler import StoryHandler
 
 
-class OneStorySpider(scrapy.Spider):
-    name = 'one_story_spider'
+class SomeStoriesSpider(scrapy.Spider):
+    name = 'some_stories_spider'
     allowed_domains = ['truyenfull.vn']
     custom_settings = {
         'ITEM_PIPELINES': {
@@ -13,7 +13,7 @@ class OneStorySpider(scrapy.Spider):
     }
 
     def __init__(self, story_urls, *args, **kwargs):
-        super(OneStorySpider, self).__init__(*args, **kwargs)
+        super(SomeStoriesSpider, self).__init__(*args, **kwargs)
         self.start_urls = story_urls.split(',') if story_urls else []
         self.story_handler = StoryHandler()
 

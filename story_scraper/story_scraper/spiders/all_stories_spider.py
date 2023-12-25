@@ -21,8 +21,6 @@ class AllStoriesSpider(scrapy.Spider):
 
     def parse(self, response):
         page_number = response.meta.get('page_number', 1)
-        if page_number > MAX_PAGES_STORIES:
-            return
         story_urls = response.css('.col-truyen-main .list-truyen .row h3 a::attr(href)').getall()
 
         for story_url in story_urls:
@@ -32,5 +30,5 @@ class AllStoriesSpider(scrapy.Spider):
             '//div[contains(@class, "pagination")]//li[contains(@class, "active")]/following-sibling::'
             'li[1][not(contains(@class, "dropup"))]/a/@href').get()
 
-        if next_page is not None:
+        if next_page is not None and page_number < MAX_PAGES_STORIES:
             yield response.follow(next_page, callback=self.parse, meta={'page_number': page_number + 1})
