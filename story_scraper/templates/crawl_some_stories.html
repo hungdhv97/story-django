@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crawl Stories</title>
+</head>
+<body>
+<h2>Crawl Stories</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Start Crawling</button>
+</form>
+
+{% if messages %}
+<ul>
+    {% for message in messages %}
+    <li
+            %} %} class="{{ message.tags }}" endif ifmessage.tags {% {%>{{ message }}
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+</body>
+</html>
