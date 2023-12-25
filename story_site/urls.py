@@ -22,6 +22,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('stories.urls')),
+    path('scrape/', include('story_scraper.urls'))
 ]
 urlpatterns.extend(static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))
 urlpatterns.extend(static(settings.STATIC_URL, document_root=settings.STATIC_ROOT))
