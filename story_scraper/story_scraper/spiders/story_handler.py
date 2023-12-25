@@ -118,7 +118,7 @@ class StoryHandler:
         source = story_source or ""
         cover_photo = response.css('.col-truyen-main .info-holder img::attr(src)').get()
 
-        existing_story = Story.objects.filter(slug="slug").first()
+        existing_story = Story.objects.filter(title=title).first()
         if existing_story is not None:
             return existing_story
         story = Story(title=title, description=description, author_id=author.id, created_date=created_date,
@@ -129,7 +129,10 @@ class StoryHandler:
 
     def save_story_genres(self, story, genres):
         for genre in genres:
-            StoryGenre(story_id=story.id, genre_id=genre.id).save()
+            existing_story_genre = StoryGenre.objects.filter(story_id=story.id, genre_id=genre.id).first()
+            if existing_story_genre is None:
+                story_genre = StoryGenre(story_id=story.id, genre_id=genre.id)
+                story_genre.save()
 
     def save_rating(self, response, story):
         rating_value = round(

@@ -11,8 +11,8 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--story-urls', type=str, help='Comma-separated list of story URLs')
-        parser.add_argument('--from_chapter_index', type=int, default=1, help='from chapter index')
-        parser.add_argument('--to_chapter_index', type=int, default=20, help='to chapter index')
+        parser.add_argument('--from-chapter-index', type=int, default=1, help='from chapter index')
+        parser.add_argument('--to-chapter-index', type=int, default=20, help='to chapter index')
 
     def handle(self, *args, **options):
         story_urls = options['story_urls']
