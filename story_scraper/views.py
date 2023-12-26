@@ -28,9 +28,9 @@ def crawl_list_stories_view(request):
                 ]
 
                 # Run the command asynchronously
-                subprocess.Popen(command)
+                subprocess.run(command)
 
-                messages.success(request, 'Stories crawl initiated successfully.')
+                messages.success(request, 'Stories crawl completed successfully.')
             except Exception as e:
                 messages.error(request, f'Error occurred: {e}')
 
@@ -58,8 +58,8 @@ def crawl_some_stories_view(request):
                     '--from-chapter-index', str(from_chapter_index),
                     '--to-chapter-index', str(to_chapter_index)
                 ]
-                subprocess.Popen(command)
-                messages.success(request, 'Story crawling initiated successfully.')
+                subprocess.run(command)
+                messages.success(request, 'Story crawling completed successfully.')
             except Exception as e:
                 messages.error(request, f'Error occurred: {e}')
 
