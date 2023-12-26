@@ -1,11 +1,13 @@
 import subprocess
 
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, redirect
 
 from .forms import ListStoriesCrawlForm, SomeStoriesCrawlForm
 
 
+@staff_member_required
 def crawl_list_stories_view(request):
     if request.method == 'POST':
         form = ListStoriesCrawlForm(request.POST)
@@ -40,6 +42,7 @@ def crawl_list_stories_view(request):
     return render(request, 'crawl_list_stories.html', {'form': form})
 
 
+@staff_member_required
 def crawl_some_stories_view(request):
     if request.method == 'POST':
         form = SomeStoriesCrawlForm(request.POST)
@@ -51,7 +54,7 @@ def crawl_some_stories_view(request):
             try:
                 command = [
                     'python', 'manage.py', 'crawl_some_stories',
-                    '--story-urls', story_urls,
+                    '--story-urls', story_urls.replace('\n', ','),
                     '--from-chapter-index', str(from_chapter_index),
                     '--to-chapter-index', str(to_chapter_index)
                 ]
