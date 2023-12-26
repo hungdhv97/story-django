@@ -39,7 +39,7 @@ def crawl_list_stories_view(request):
     else:
         form = ListStoriesCrawlForm()
 
-    return render(request, 'crawl_list_stories.html', {'form': form})
+    return render(request, 'crawl_stories.html', {'form': form})
 
 
 @staff_member_required
@@ -67,4 +67,4 @@ def crawl_some_stories_view(request):
     else:
         form = SomeStoriesCrawlForm()
 
-    return render(request, 'crawl_some_stories.html', {'form': form})
+    return render(request, 'crawl_stories.html', {'form': form})
