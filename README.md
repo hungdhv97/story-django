@@ -83,8 +83,8 @@ INSTALLED_APPS = [
       ```
 * Tạo **Django Form** run spider
     * Tạo các file `forms.py` `views.py` `urls.py` `templates/crawl_stories.html` trong dự án  **Scrapy (story_scraper)**
-    * Run Django Project để tránh lối `signal only works in main thread of the main interpreter`
+    * Sử dụng thư viện subprocess run command để tránh lối `signal only works in main thread of the main interpreter`
       ```shell
-      python manage.py runserver --noreload --nothreading
+      python manage.py runserver
       ```
     
