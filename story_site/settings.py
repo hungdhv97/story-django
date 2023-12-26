@@ -13,7 +13,9 @@ import os
 from pathlib import Path
 
 import cloudinary.uploader
+from dotenv import load_dotenv
 
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,7 +28,7 @@ SECRET_KEY = 'django-insecure-hzvl$v3r7&cn-2i5li)ktg&%xmd_yys*did(57m!b05l0+)pc(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -79,14 +81,12 @@ WSGI_APPLICATION = 'story_site.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / "data.sqlite3",
-        # 'ENGINE': 'django.db.backends.postgresql',
-        # 'NAME': 'postgres',
-        # 'USER': 'postgres',
-        # 'PASSWORD': 'Hung@230819971',
-        # 'HOST': 'db.eeqctqkrfdhksbilkrnp.supabase.co',
-        # 'PORT': '5432',
+        'ENGINE': os.environ.get('DB_ENGINE', 'default_db_engine'),
+        'NAME': os.environ.get('DB_NAME', 'default_db_name'),
+        'USER': os.environ.get('DB_USER', 'default_user'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'default_password'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
