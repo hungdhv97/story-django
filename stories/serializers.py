@@ -19,7 +19,7 @@ class GenreSerializer(serializers.ModelSerializer):
 class ChapterDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chapter
-        fields = ['id', 'title', 'publish_date']
+        fields = ['id', 'title', 'published_date']
 
 
 class StorySerializer(serializers.ModelSerializer):
@@ -68,7 +68,7 @@ class ChapterResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Chapter
-        fields = ['id', 'story', 'title', 'content', 'publish_date']
+        fields = ['id', 'story', 'title', 'content', 'published_date']
 
 
 class RatingSerializer(serializers.ModelSerializer):
