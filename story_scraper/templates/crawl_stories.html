@@ -1,3 +1,10 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crawl Stories</title>
+</head>
+<body>
 {% if messages %}
     {% for message in messages %}
         <div class="alert alert-{{ message.tags }}">
@@ -12,8 +19,52 @@
     <button type="submit" id="submitBtn">Crawl Stories</button>
 </form>
 
+<h2>Subprocess Output:</h2>
+<div id="subprocessOutput"></div>
+
 <script>
-    document.getElementById('crawlForm').addEventListener('submit', function () {
-        document.getElementById('submitBtn').disabled = true;
+    const socket = new WebSocket(`ws://${window.location.host}/ws/subprocess/`);
+    const submitBtn = document.getElementById('submitBtn');
+    const outputDiv = document.getElementById('subprocessOutput');
+    const form = document.getElementById('crawlForm');
+
+    const enableButton = () => submitBtn.disabled = false;
+    const disableButton = () => submitBtn.disabled = true;
+
+    socket.addEventListener('open', (e) => {
+        console.log('WebSocket connection established');
+        enableButton();
+    });
+
+    socket.addEventListener('close', (e) => {
+        console.error('WebSocket closed unexpectedly', e);
+        disableButton();
+    });
+
+    socket.addEventListener('message', (e) => {
+        console.log('WebSocket message received:', e);
+        const data = JSON.parse(e.data);
+        outputDiv.innerHTML += `<p>${data.message}</p>`;
+
+        if (data.commandCompleted) {
+            enableButton();
+        }
+    });
+
+    const sendCommand = (command) => {
+        outputDiv.innerHTML = '';
+        if (command) {
+            socket.send(JSON.stringify({'command': command}));
+        } else {
+            console.error('No command to run');
+            enableButton();
+        }
+    };
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        disableButton();
+        const command = "{{ command }}";
+        sendCommand(command);
     });
 </script>

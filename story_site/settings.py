@@ -33,6 +33,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,6 +76,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'story_site.wsgi.application'
+ASGI_APPLICATION = 'story_site.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -142,4 +144,10 @@ cloudinary.config(
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'story_site.pagination.CustomPagination',
     'PAGE_SIZE': 5
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
 }
