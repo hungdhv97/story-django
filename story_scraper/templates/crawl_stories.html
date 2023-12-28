@@ -1,14 +1,16 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
     <title>Crawl Stories</title>
-    <!-- Add any additional CSS references here -->
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/base.css' %}">
 </head>
 <body>
 <form method="post" id="crawlForm">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" id="submitBtn">Crawl Stories</button>
+    <div id="subprocessStatus"></div>
 </form>
 
 <h2 id="outputLabel">Subprocess Output:</h2>
@@ -19,6 +21,7 @@
         const socket = new WebSocket(`ws://${window.location.host}/ws/subprocess/`);
         const submitBtn = document.getElementById('submitBtn');
         const outputDiv = document.getElementById('subprocessOutput');
+        const statusDiv = document.getElementById('subprocessStatus')
         const form = document.getElementById('crawlForm');
 
         function enableButton() {
@@ -44,36 +47,31 @@
             if (data.message) {
                 outputDiv.innerHTML += `<p>${data.message}</p>`;
             }
-
             if (data.commandCompleted) {
                 enableButton();
+                statusDiv.innerText = 'Crawl stories completed !!!';
             }
         });
 
-        form.addEventListener('submit', (event) => {
+        submitBtn.addEventListener('click', (event) => {
             event.preventDefault();
             disableButton();
-            const formData = new FormData(form);
-
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-                },
-            })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Form submission successful', data);
-                    const command = data.command;
-                    sendCommand(command);
-                })
-                .catch((error) => {
-                    console.error('Error in form submission:', error);
-                    enableButton();
-                });
+            statusDiv.innerText = 'Crawling ...';
+            const command = prepareCrawlCommand();
+            sendCommand(command);
         });
+
+        function prepareCrawlCommand() {
+            const formData = new FormData(form);
+            let commandArgs = [];
+            for (let [key, value] of formData.entries()) {
+                if (key !== 'csrfmiddlewaretoken') {
+                    key = key.replace(/_/g, "-");
+                    commandArgs.push(`--${key} ${value}`);
+                }
+            }
+            return `python manage.py crawl_list_stories ${commandArgs.join(' ')}`;
+        }
 
         function sendCommand(command) {
             outputDiv.innerHTML = '';
