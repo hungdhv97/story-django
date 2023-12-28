@@ -31,7 +31,9 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const socket = new WebSocket(`wss://${window.location.host}/ws/subprocess/`);
+        const socket = location.protocol === 'https:'
+            ? new WebSocket(`wss://${window.location.host}/ws/subprocess/`)
+            : new WebSocket(`ws://${window.location.host}/ws/subprocess/`);
         const submitBtn = document.getElementById('submitBtn');
         const outputDiv = document.getElementById('subprocessOutput');
         const statusDiv = document.getElementById('subprocessStatus')
