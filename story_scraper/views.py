@@ -1,48 +1,28 @@
-import subprocess
-
-from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.shortcuts import render
 
 from .forms import ListStoriesCrawlForm, SomeStoriesCrawlForm
 
 
+def prepare_crawl_command(form, command_template):
+    command_args = ' '.join([f'--{key.replace("_", "-")} {value}' for key, value in form.cleaned_data.items()])
+    return command_template.format(command_args)
+
+
 @staff_member_required
 def crawl_list_stories_view(request):
-    command = ''
-    form = ListStoriesCrawlForm()
-    if request.method == 'POST':
-        form = ListStoriesCrawlForm(request.POST)
-        if form.is_valid():
-            from_story_index = form.cleaned_data['from_story_index']
-            to_story_index = form.cleaned_data['to_story_index']
-            from_chapter_index = form.cleaned_data['from_chapter_index']
-            to_chapter_index = form.cleaned_data['to_chapter_index']
-
-            command = f'python manage.py crawl_list_stories --from-story-index {from_story_index} --to-story-index {to_story_index} --from-chapter-index {from_chapter_index} --to-chapter-index {to_chapter_index}'
-            messages.info(request, 'Command prepared for execution. Please check the output below.')
-    context = {
-        'form': form,
-        'command': command,
-    }
-    return render(request, 'crawl_stories.html', context)
+    form = ListStoriesCrawlForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        command = prepare_crawl_command(form, 'python manage.py crawl_list_stories {}')
+        return JsonResponse({"command": command})
+    return render(request, 'crawl_stories.html', {'form': form, 'command': ''})
 
 
 @staff_member_required
 def crawl_some_stories_view(request):
-    command = ''
-    form = SomeStoriesCrawlForm()
-    if request.method == 'POST':
-        form = SomeStoriesCrawlForm(request.POST)
-        if form.is_valid():
-            story_urls = form.cleaned_data['story_urls']
-            from_chapter_index = form.cleaned_data['from_chapter_index']
-            to_chapter_index = form.cleaned_data['to_chapter_index']
-
-            command = f"python manage.py crawl_some_stories --story-urls {story_urls} --from-chapter-index {from_chapter_index} --to-chapter-index {to_chapter_index}"
-            messages.info(request, 'Story crawling completed successfully.')
-    context = {
-        'form': form,
-        'command': command
-    }
-    return render(request, 'crawl_stories.html', context)
+    form = SomeStoriesCrawlForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        command = prepare_crawl_command(form, 'python manage.py crawl_some_stories {}')
+        return JsonResponse({"command": command})
+    return render(request, 'crawl_stories.html', {'form': form, 'command': ''})

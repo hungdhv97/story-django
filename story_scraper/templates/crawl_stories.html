@@ -1,70 +1,90 @@
-{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
     <title>Crawl Stories</title>
+    <!-- Add any additional CSS references here -->
 </head>
 <body>
-{% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-            {{ message }}
-        </div>
-    {% endfor %}
-{% endif %}
-
 <form method="post" id="crawlForm">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" id="submitBtn">Crawl Stories</button>
 </form>
 
-<h2>Subprocess Output:</h2>
+<h2 id="outputLabel">Subprocess Output:</h2>
 <div id="subprocessOutput"></div>
 
 <script>
-    const socket = new WebSocket(`ws://${window.location.host}/ws/subprocess/`);
-    const submitBtn = document.getElementById('submitBtn');
-    const outputDiv = document.getElementById('subprocessOutput');
-    const form = document.getElementById('crawlForm');
+    document.addEventListener('DOMContentLoaded', function () {
+        const socket = new WebSocket(`ws://${window.location.host}/ws/subprocess/`);
+        const submitBtn = document.getElementById('submitBtn');
+        const outputDiv = document.getElementById('subprocessOutput');
+        const form = document.getElementById('crawlForm');
 
-    const enableButton = () => submitBtn.disabled = false;
-    const disableButton = () => submitBtn.disabled = true;
-
-    socket.addEventListener('open', (e) => {
-        console.log('WebSocket connection established');
-        enableButton();
-    });
-
-    socket.addEventListener('close', (e) => {
-        console.error('WebSocket closed unexpectedly', e);
-        disableButton();
-    });
-
-    socket.addEventListener('message', (e) => {
-        console.log('WebSocket message received:', e);
-        const data = JSON.parse(e.data);
-        outputDiv.innerHTML += `<p>${data.message}</p>`;
-
-        if (data.commandCompleted) {
-            enableButton();
+        function enableButton() {
+            submitBtn.disabled = false;
         }
-    });
 
-    const sendCommand = (command) => {
-        outputDiv.innerHTML = '';
-        if (command) {
-            socket.send(JSON.stringify({'command': command}));
-        } else {
-            console.error('No command to run');
-            enableButton();
+        function disableButton() {
+            submitBtn.disabled = true;
         }
-    };
 
-    form.addEventListener('submit', (event) => {
-        event.preventDefault();
-        disableButton();
-        const command = "{{ command }}";
-        sendCommand(command);
+        socket.addEventListener('open', () => {
+            console.log('WebSocket connection established');
+            enableButton();
+        });
+
+        socket.addEventListener('close', (e) => {
+            console.error('WebSocket closed unexpectedly', e);
+            disableButton();
+        });
+
+        socket.addEventListener('message', (e) => {
+            const data = JSON.parse(e.data);
+            if (data.message) {
+                outputDiv.innerHTML += `<p>${data.message}</p>`;
+            }
+
+            if (data.commandCompleted) {
+                enableButton();
+            }
+        });
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            disableButton();
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Form submission successful', data);
+                    const command = data.command;
+                    sendCommand(command);
+                })
+                .catch((error) => {
+                    console.error('Error in form submission:', error);
+                    enableButton();
+                });
+        });
+
+        function sendCommand(command) {
+            outputDiv.innerHTML = '';
+            if (command) {
+                socket.send(JSON.stringify({'command': command}));
+            } else {
+                console.error('No command to run');
+                enableButton();
+            }
+        };
     });
 </script>
+</body>
+</html>
