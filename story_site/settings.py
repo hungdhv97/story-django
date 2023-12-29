@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'cloudinary',
     'rest_framework',
     'django_filters',
-    'story_scraper'
+    'story_scraper',
+    'common'
 ]
 
 MIDDLEWARE = [
