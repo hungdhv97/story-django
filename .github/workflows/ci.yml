@@ -6,8 +6,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      DB_ENGINE: django.db.backends.sqlite3
-      DB_NAME: data.sqlite3
+      DB_ENGINE: 'django.db.backends.sqlite3'
+      DB_NAME: 'data.sqlite3'
     environment:
       name: EC2
       url: ${{ steps.deploy.outputs.url }}
