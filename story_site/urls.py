@@ -19,13 +19,11 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
-from story_scraper.views import crawl_list_stories_view, crawl_some_stories_view
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('stories.urls')),
-    path('admin/story_scraper/crawlliststories', crawl_list_stories_view, name='crawl-list-stories'),
-    path('admin/story_scraper/crawlsomestories', crawl_some_stories_view, name='crawl-some-stories'),
+    path('common/', include('common.urls')),
+    path('admin/story_scraper/', include('story_scraper.urls')),
 ]
 urlpatterns.extend(static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))
 urlpatterns.extend(static(settings.STATIC_URL, document_root=settings.STATIC_ROOT))
