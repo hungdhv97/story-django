@@ -39,7 +39,7 @@ jobs:
         run: |
           python manage.py runserver &
           echo $! > django_pid.txt
-          sleep 5
+          sleep 10
 
       - name: Health Check
         run: |
