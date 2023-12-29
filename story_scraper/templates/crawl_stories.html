@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>Crawl Stories</title>
-    <!-- Include Tailwind CSS via CDN -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100">
@@ -39,6 +38,28 @@
         const statusDiv = document.getElementById('subprocessStatus')
         const form = document.getElementById('crawlForm');
 
+        function updateStatus(message, status) {
+            const statusDiv = document.getElementById('subprocessStatus');
+
+            if (status === 'loading') {
+                statusDiv.innerHTML = `
+                <div class="flex items-center text-blue-500">
+                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+<path fill="#000000" d="M12,22c-5.522,0-10-4.477-10-10S6.478,2,12,2s10,4.477,10,10c0,1.306-0.253,2.558-0.706,3.706l1.924,0.517 C23.615,14.077,24,13.071,24,12c0-6.627-5.373-12-12-12S0,5.373,0,12s5.373,12,12,12c1.71,0,3.333-0.362,4.782-1.007l-0.638-1.899 C15.333,21.638,13.71,22,12,22z"></path>
+                    </svg>
+                    ${message}
+                </div>`;
+            } else if (status === 'completed') {
+                statusDiv.innerHTML = `
+                <div class="flex items-center text-green-500">
+                    <svg class="h-5 w-5 mr-3" viewBox="0 0 24 24">
+<path fill="#000000" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
+                    </svg>
+                    ${message}
+                </div>`;
+            }
+        }
+
         function enableButton() {
             submitBtn.disabled = false;
         }
@@ -65,14 +86,14 @@
             }
             if (data.commandCompleted) {
                 enableButton();
-                statusDiv.innerText = 'Crawl stories completed !!!';
+                updateStatus('Crawl stories completed !!!', 'completed');
             }
         });
 
         submitBtn.addEventListener('click', (event) => {
             event.preventDefault();
             disableButton();
-            statusDiv.innerText = 'Crawling ...';
+            updateStatus('Crawling...', 'loading');
             const command = prepareCrawlCommand();
             sendCommand(command);
         });
