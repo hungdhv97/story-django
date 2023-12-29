@@ -22,9 +22,6 @@ jobs:
           TARGET: ${{ secrets.DEPLOY_DIR }}
   health_check:
     runs-on: ubuntu-latest
-    env:
-      DB_ENGINE: 'django.db.backends.sqlite3'
-      DB_NAME: 'data.sqlite3'
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -42,7 +39,10 @@ jobs:
         run: |
           python manage.py runserver &
           echo $! > django_pid.txt
-          sleep 10
+          sleep 5
+        env:
+          DB_ENGINE: 'django.db.backends.sqlite3'
+          DB_NAME: 'data.sqlite3'
 
       - name: Health Check
         run: |
