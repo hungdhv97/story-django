@@ -82,9 +82,15 @@ INSTALLED_APPS = [
       python manage.py crawl
       ```
 * Tạo **Django Form** run spider
-    * Tạo các file `forms.py` `views.py` `urls.py` `templates/crawl_stories.html` trong dự án  **Scrapy (story_scraper)**
+    * Tạo các file `forms.py` `views.py` `urls.py` `templates/crawl_stories.html` trong dự án  **Scrapy (story_scraper)
+      **
     * Sử dụng thư viện subprocess run command để tránh lối `signal only works in main thread of the main interpreter`
       ```shell
-      python manage.py runserver
+      python manage.py runserver 0.0.0.0:8000
       ```
-    
+    * Chuyển đổi chạy ứng dụng từ `wsgi` thành `asgi`
+        * Cài đặt thư viện `daphne` và thêm vào **INSTALLED_APPS**
+        * Thêm `consumers.py` vào story_site để nhận và gửi message
+        * Thêm `routing.py` tạo url để kết nối với websocket
+        * Thay đổi application trong `asgi.py`
+        * Trong template `crawl_stories.html` (client), tạo kết nối websocket để nhận và gửi message 
