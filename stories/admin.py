@@ -24,7 +24,7 @@ class AuthorAdmin(admin.ModelAdmin):
 
 
 class GenreAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
+    list_display = ('id', 'name', 'slug')
 
 
 class StoryGenreAdmin(admin.ModelAdmin):

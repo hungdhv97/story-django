@@ -19,6 +19,20 @@ class Author(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(max_length=255, blank=True)
+    slug = models.SlugField(max_length=255, unique=True, editable=False, blank=True)
+
+    def save(self, *args, **kwargs):
+        original_slug = slugify(unidecode(self.name))
+        unique_slug = original_slug
+        num = 1
+
+        while Genre.objects.filter(slug=unique_slug).exists():
+            unique_slug = f'{original_slug}-{num}'
+            num += 1
+
+        self.slug = unique_slug
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
