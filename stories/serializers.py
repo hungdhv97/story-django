@@ -30,6 +30,7 @@ class StorySerializer(serializers.ModelSerializer):
     avg_rating = serializers.FloatField(read_only=True)
     genres = serializers.SerializerMethodField()
     latest_chapter = serializers.SerializerMethodField()
+    cover_photo = serializers.SerializerMethodField()
     author = AuthorSerializer()
 
     class Meta:
@@ -38,6 +39,9 @@ class StorySerializer(serializers.ModelSerializer):
             'id', 'title', 'description', 'author', 'genres', 'total_chapters', 'total_reads', 'created_date', 'status',
             'source', 'cover_photo', 'is_new', 'is_hot', 'avg_rating', 'slug', 'latest_chapter'
         ]
+
+    def get_cover_photo(self, obj):
+        return obj.cover_photo.url
 
     def get_genres(self, obj):
         story_genres = StoryGenre.objects.filter(story=obj)
