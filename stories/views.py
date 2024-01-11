@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from story_site.pagination import CustomPagination
 from .consts import HOT_STORY_TOTAL_READS, NEW_STORY_DIFF_DATE
 from .models import Story, Chapter, Genre
-from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterResponseSerializer, RatingSerializer, \
+from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterSerializer, RatingSerializer, \
     GenreSerializer
 
 
@@ -89,7 +89,7 @@ class StoryDetailView(RetrieveAPIView):
 
 
 class ChapterListView(ListAPIView):
-    serializer_class = ChapterResponseSerializer
+    serializer_class = ChapterSerializer
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -107,7 +107,7 @@ class ChapterListView(ListAPIView):
 
 
 class ChapterDetailView(RetrieveAPIView):
-    serializer_class = ChapterResponseSerializer
+    serializer_class = ChapterSerializer
     lookup_field = 'id'
 
     def get_object(self):

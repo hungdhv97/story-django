@@ -63,7 +63,7 @@ class StoryDetailSerializer(serializers.ModelSerializer):
         fields = ['title', 'slug']
 
 
-class ChapterResponseSerializer(serializers.ModelSerializer):
+class ChapterSerializer(serializers.ModelSerializer):
     story = StoryDetailSerializer()
 
     class Meta:
