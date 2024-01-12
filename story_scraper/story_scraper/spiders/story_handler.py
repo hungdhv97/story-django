@@ -1,7 +1,7 @@
 import math
 import random
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from scrapy import Request
 
@@ -104,7 +104,7 @@ class StoryHandler:
                 '\n',
                 response.css('.col-truyen-main .desc-text').get())
         ).replace("\u00A0", " ")
-        created_date = datetime.now().strftime("%Y-%m-%d")
+        created_date = (((datetime.now() - timedelta(days=60)) + timedelta(days=random.randint(0, 60))).strftime("%Y-%m-%d"))
         # Mapping of conditions to statuses
         status_ongoing = response.css('.col-truyen-main .info-holder .info span.text-primary::text').get()
         status_success = response.css('.col-truyen-main .info-holder .info span.text-success::text').get()
