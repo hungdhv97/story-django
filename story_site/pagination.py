@@ -5,6 +5,12 @@ from rest_framework.response import Response
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'limit'
 
+    def paginate_queryset(self, queryset, request, view=None):
+        if 'limit' not in request.query_params:
+            return None
+
+        return super(CustomPagination, self).paginate_queryset(queryset, request, view)
+
     def get_paginated_response(self, data):
         return Response({
             'meta': {
