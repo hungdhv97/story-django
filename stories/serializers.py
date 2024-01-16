@@ -55,7 +55,7 @@ class StorySerializer(serializers.ModelSerializer):
         latest_chapter = None
         highest_number = -1
         for chapter in chapters:
-            match = re.search(r'Chương (\d+):', chapter.title)
+            match = re.search(r'Chương (\d+)', chapter.title)
             if match:
                 number = int(match.group(1))
                 if number > highest_number:
