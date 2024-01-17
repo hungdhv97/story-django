@@ -1,5 +1,9 @@
-from django.db.models import Count, Sum, Case, When, Value, BooleanField, Avg, Q
+from django.db.models import Count, Sum, Case, When, BooleanField, Avg, Q
+from django.db.models import IntegerField
+from django.db.models import Value
+from django.db.models.functions import Cast
 from django.db.models.functions import Now, Round
+from django.db.models.functions import StrIndex, Substr, Length, Trim
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -11,7 +15,7 @@ from story_site.pagination import CustomPagination
 from .consts import HOT_STORY_TOTAL_READS, NEW_STORY_DIFF_DATE
 from .models import Story, Chapter, Genre
 from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterSerializer, RatingSerializer, \
-    GenreSerializer
+    GenreSerializer, ChapterInStorySerializer
 
 
 class StoryListView(ListAPIView):
@@ -97,11 +101,55 @@ class ChapterListView(ListAPIView):
         story = get_object_or_404(Story, slug=slug)
         queryset = Chapter.objects.filter(story=story)
 
+        queryset = queryset.annotate(
+            number_chapter=Cast(
+                Trim(
+                    Substr(
+                        'title',
+                        StrIndex('title', Value('Chương ')) + 7,
+                        Length('title')
+                    )
+                ),
+                IntegerField()
+            )
+        )
+
         sort = self.request.query_params.get('sort')
         if sort == 'desc':
-            queryset = queryset.order_by('-title')
+            queryset = queryset.order_by('-number_chapter')
         else:
-            queryset = queryset.order_by('title')
+            queryset = queryset.order_by('number_chapter')
+
+        return queryset
+
+
+class ChapterShortInfoListView(ListAPIView):
+    serializer_class = ChapterInStorySerializer
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        slug = self.kwargs.get('slug')
+        story = get_object_or_404(Story, slug=slug)
+        queryset = Chapter.objects.filter(story=story)
+
+        queryset = queryset.annotate(
+            number_chapter=Cast(
+                Trim(
+                    Substr(
+                        'title',
+                        StrIndex('title', Value('Chương ')) + 7,
+                        Length('title')
+                    )
+                ),
+                IntegerField()
+            )
+        )
+
+        sort = self.request.query_params.get('sort')
+        if sort == 'desc':
+            queryset = queryset.order_by('-number_chapter')
+        else:
+            queryset = queryset.order_by('number_chapter')
 
         return queryset
 
