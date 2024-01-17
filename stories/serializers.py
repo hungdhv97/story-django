@@ -18,7 +18,7 @@ class GenreSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug']
 
 
-class ChapterDetailSerializer(serializers.ModelSerializer):
+class ChapterInStorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Chapter
         fields = ['id', 'title', 'published_date']
@@ -61,7 +61,7 @@ class StorySerializer(serializers.ModelSerializer):
                 if number > highest_number:
                     highest_number = number
                     latest_chapter = chapter
-        return ChapterDetailSerializer(latest_chapter).data if latest_chapter else None
+        return ChapterInStorySerializer(latest_chapter).data if latest_chapter else None
 
 
 class StoryQueryParameterSerializer(serializers.Serializer):
@@ -72,14 +72,14 @@ class StoryQueryParameterSerializer(serializers.Serializer):
     status = serializers.CharField(required=False)
 
 
-class StoryDetailSerializer(serializers.ModelSerializer):
+class StoryInChapterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Story
         fields = ['title', 'slug']
 
 
 class ChapterSerializer(serializers.ModelSerializer):
-    story = StoryDetailSerializer()
+    story = StoryInChapterSerializer()
 
     class Meta:
         model = Chapter
