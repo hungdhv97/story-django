@@ -66,27 +66,10 @@ class StorySerializer(serializers.ModelSerializer):
         return ChapterInStorySerializer(latest_chapter).data if latest_chapter else None
 
     def get_total_reads(self, obj):
-        one_week_ago = datetime.now() - timedelta(days=7)
-        one_month_ago = datetime.now() - timedelta(days=30)
-
-        reads_last_week = ReadingStats.objects.filter(
-            story=obj,
-            date__gte=one_week_ago
-        ).aggregate(total=Sum('read_count'))['total'] or 0
-
-        reads_last_month = ReadingStats.objects.filter(
-            story=obj,
-            date__gte=one_month_ago
-        ).aggregate(total=Sum('read_count'))['total'] or 0
-
-        reads_all_time = ReadingStats.objects.filter(
-            story=obj
-        ).aggregate(total=Sum('read_count'))['total'] or 0
-
         return {
-            "week": reads_last_week,
-            "month": reads_last_month,
-            "all": reads_all_time
+            'week': getattr(obj, 'total_reads_week', 0),
+            'month': getattr(obj, 'total_reads_month', 0),
+            'all': getattr(obj, 'total_reads_all', 0),
         }
 
 
