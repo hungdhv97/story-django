@@ -1,11 +1,9 @@
 import re
-from datetime import datetime, timedelta
 
-from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from .models import Story, Author, Genre, Chapter, StoryGenre, Rating, ReadingStats
+from .models import Story, Author, Genre, Chapter, StoryGenre, Rating
 
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -66,10 +64,7 @@ class StorySerializer(serializers.ModelSerializer):
         return ChapterInStorySerializer(latest_chapter).data if latest_chapter else None
 
     def get_total_reads(self, obj):
-        return {
-            'week': getattr(obj, 'total_reads_week', 0),
-            'all': getattr(obj, 'total_reads_all', 0),
-        }
+        return getattr(obj, 'total_reads_all', 0)
 
 
 class TopStorySerializer(serializers.ModelSerializer):
@@ -85,6 +80,7 @@ class TopStorySerializer(serializers.ModelSerializer):
 
     def get_cover_photo(self, obj):
         return obj.cover_photo.url if obj.cover_photo else None
+
 
 class StoryQueryParameterSerializer(serializers.Serializer):
     author_id = serializers.IntegerField(required=False)
