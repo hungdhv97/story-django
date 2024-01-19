@@ -68,7 +68,6 @@ class StorySerializer(serializers.ModelSerializer):
     def get_total_reads(self, obj):
         return {
             'week': getattr(obj, 'total_reads_week', 0),
-            'month': getattr(obj, 'total_reads_month', 0),
             'all': getattr(obj, 'total_reads_all', 0),
         }
 

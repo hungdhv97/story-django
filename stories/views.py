@@ -34,21 +34,11 @@ class StoryListView(ListAPIView):
         validated_data = param_serializer.validated_data
 
         one_week_ago = datetime.now() - timedelta(days=7)
-        one_month_ago = datetime.now() - timedelta(days=30)
-
         queryset = queryset.annotate(
             total_chapters=Count('chapter', distinct=True),
             total_reads_week=Sum(
                 Case(
                     When(readingstats__date__gte=one_week_ago, then='readingstats__read_count'),
-                    default=0,
-                    output_field=IntegerField(),
-                ),
-                distinct=True
-            ),
-            total_reads_month=Sum(
-                Case(
-                    When(readingstats__date__gte=one_month_ago, then='readingstats__read_count'),
                     default=0,
                     output_field=IntegerField(),
                 ),
@@ -97,7 +87,6 @@ class StoryDetailView(RetrieveAPIView):
     def get_object(self):
         slug = self.kwargs.get('slug', None)
         one_week_ago = datetime.now() - timedelta(days=7)
-        one_month_ago = datetime.now() - timedelta(days=30)
         queryset = Story.objects.annotate(
             total_chapters=Count('chapter', distinct=True),
             total_reads_week=Sum(
@@ -105,14 +94,6 @@ class StoryDetailView(RetrieveAPIView):
                     When(readingstats__date__gte=one_week_ago, then='readingstats__read_count'),
                     default=0,
                     output_field=IntegerField(),
-                ),
-                distinct=True
-            ),
-            total_reads_month=Sum(
-                Case(
-                    When(readingstats__date__gte=one_month_ago, then='readingstats__read_count'),
-                    default=0,
-                    output_field=IntegerField()
                 ),
                 distinct=True
             ),
