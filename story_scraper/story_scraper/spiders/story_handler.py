@@ -104,7 +104,8 @@ class StoryHandler:
                 '\n',
                 response.css('.col-truyen-main .desc-text').get())
         ).replace("\u00A0", " ")
-        created_date = (((datetime.now() - timedelta(days=60)) + timedelta(days=random.randint(0, 60))).strftime("%Y-%m-%d"))
+        created_date = (
+            ((datetime.now() - timedelta(days=60)) + timedelta(days=random.randint(0, 60))).strftime("%Y-%m-%d"))
         # Mapping of conditions to statuses
         status_ongoing = response.css('.col-truyen-main .info-holder .info span.text-primary::text').get()
         status_success = response.css('.col-truyen-main .info-holder .info span.text-success::text').get()
@@ -144,13 +145,15 @@ class StoryHandler:
             rating.save()
 
     def save_reading_stats(self, response, story):
-        read_count = random.randint(100, 100000)
-        date = datetime.now().strftime("%Y-%m-%d")
-
-        existing_reading_stats = ReadingStats.objects.filter(story_id=story.id, date=date).first()
-        if existing_reading_stats is None:
-            reading_stats = ReadingStats(story_id=story.id, read_count=read_count, date=date)
-            reading_stats.save()
+        today = datetime.now()
+        two_months_ago = today - timedelta(days=60)
+        for single_date in (two_months_ago + timedelta(n) for n in range((today - two_months_ago).days)):
+            date_str = single_date.strftime("%Y-%m-%d")
+            read_count = random.randint(100, 100000)
+            existing_reading_stats = ReadingStats.objects.filter(story_id=story.id, date=date_str).first()
+            if existing_reading_stats is None:
+                reading_stats = ReadingStats(story_id=story.id, read_count=read_count, date=date_str)
+                reading_stats.save()
 
     def parse_chapters(self, response, story):
         page_number = response.meta.get('page_number', 1)

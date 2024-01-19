@@ -1,9 +1,11 @@
 import re
+from datetime import datetime, timedelta
 
+from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from .models import Story, Author, Genre, Chapter, StoryGenre, Rating
+from .models import Story, Author, Genre, Chapter, StoryGenre, Rating, ReadingStats
 
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -26,7 +28,7 @@ class ChapterInStorySerializer(serializers.ModelSerializer):
 
 class StorySerializer(serializers.ModelSerializer):
     total_chapters = serializers.IntegerField(read_only=True)
-    total_reads = serializers.IntegerField(read_only=True)
+    total_reads = serializers.SerializerMethodField()
     is_new = serializers.BooleanField(read_only=True)
     is_hot = serializers.BooleanField(read_only=True)
     avg_rating = serializers.FloatField(read_only=True)
@@ -62,6 +64,30 @@ class StorySerializer(serializers.ModelSerializer):
                     highest_number = number
                     latest_chapter = chapter
         return ChapterInStorySerializer(latest_chapter).data if latest_chapter else None
+
+    def get_total_reads(self, obj):
+        one_week_ago = datetime.now() - timedelta(days=7)
+        one_month_ago = datetime.now() - timedelta(days=30)
+
+        reads_last_week = ReadingStats.objects.filter(
+            story=obj,
+            date__gte=one_week_ago
+        ).aggregate(total=Sum('read_count'))['total'] or 0
+
+        reads_last_month = ReadingStats.objects.filter(
+            story=obj,
+            date__gte=one_month_ago
+        ).aggregate(total=Sum('read_count'))['total'] or 0
+
+        reads_all_time = ReadingStats.objects.filter(
+            story=obj
+        ).aggregate(total=Sum('read_count'))['total'] or 0
+
+        return {
+            "week": reads_last_week,
+            "month": reads_last_month,
+            "all": reads_all_time
+        }
 
 
 class StoryQueryParameterSerializer(serializers.Serializer):
