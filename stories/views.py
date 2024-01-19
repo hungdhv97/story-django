@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 
-from django.db.models import Count, Sum, Case, When, BooleanField, Avg, Q
+from django.db.models import Count, Case, When, BooleanField, Avg, Q
 from django.db.models import IntegerField
+from django.db.models import Sum, OuterRef, Subquery
 from django.db.models import Value
 from django.db.models.functions import Cast
 from django.db.models.functions import Now, Round
@@ -12,12 +13,13 @@ from rest_framework import status
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from story_site.pagination import CustomPagination
 from .consts import HOT_STORY_TOTAL_READS, NEW_STORY_DIFF_DATE
-from .models import Story, Chapter, Genre
+from .models import Story, Chapter, Genre, ReadingStats
 from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterSerializer, RatingSerializer, \
-    GenreSerializer, ChapterInStorySerializer
+    GenreSerializer, ChapterInStorySerializer, TopStorySerializer
 
 
 class StoryListView(ListAPIView):
@@ -233,3 +235,42 @@ class StorySearchView(ListAPIView):
             Q(author__name__icontains=text)
         )
         return queryset
+
+
+class TopStoryListView(APIView):
+    def get(self, request, *args, **kwargs):
+        one_week_ago = datetime.now() - timedelta(days=7)
+        one_month_ago = datetime.now() - timedelta(days=30)
+
+        reads_in_last_week = ReadingStats.objects.filter(
+            story=OuterRef('pk'),
+            date__gte=one_week_ago
+        ).values('story').annotate(
+            total=Sum('read_count')
+        ).values('total')
+        reads_in_last_month = ReadingStats.objects.filter(
+            story=OuterRef('pk'),
+            date__gte=one_month_ago
+        ).values('story').annotate(
+            total=Sum('read_count')
+        ).values('total')
+
+        top_week_stories = Story.objects.annotate(
+            total_reads=Subquery(reads_in_last_week, output_field=IntegerField())
+        ).order_by('-total_reads')[:10]
+        top_month_stories = Story.objects.annotate(
+            total_reads=Subquery(reads_in_last_month, output_field=IntegerField())
+        ).order_by('-total_reads')[:10]
+        top_all_time_stories = Story.objects.annotate(
+            total_reads=Sum('readingstats__read_count', distinct=True)
+        ).order_by('-total_reads')[:10]
+
+        week_data = TopStorySerializer(top_week_stories, many=True).data
+        month_data = TopStorySerializer(top_month_stories, many=True).data
+        all_time_data = TopStorySerializer(top_all_time_stories, many=True).data
+
+        return Response({
+            "week": week_data,
+            "month": month_data,
+            "all": all_time_data,
+        })

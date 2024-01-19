@@ -73,6 +73,20 @@ class StorySerializer(serializers.ModelSerializer):
         }
 
 
+class TopStorySerializer(serializers.ModelSerializer):
+    total_reads = serializers.SerializerMethodField()
+    cover_photo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Story
+        fields = ('id', 'title', 'cover_photo', 'slug', 'total_reads')
+
+    def get_total_reads(self, obj):
+        return getattr(obj, 'total_reads', 0)
+
+    def get_cover_photo(self, obj):
+        return obj.cover_photo.url if obj.cover_photo else None
+
 class StoryQueryParameterSerializer(serializers.Serializer):
     author_id = serializers.IntegerField(required=False)
     genre_id = serializers.IntegerField(required=False)
