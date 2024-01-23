@@ -17,7 +17,7 @@ from rest_framework.views import APIView
 
 from story_site.pagination import CustomPagination
 from .consts import HOT_STORY_TOTAL_READS, NEW_STORY_DIFF_DATE
-from .models import Story, Chapter, Genre, ReadingStats
+from .models import Story, Chapter, Genre, ReadingStats, Author
 from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterSerializer, RatingSerializer, \
     GenreSerializer, ChapterInStorySerializer, TopStorySerializer, AuthorSerializer
 
@@ -222,8 +222,8 @@ class AuthorDetailView(RetrieveAPIView):
 
     def get_object(self):
         author_id = self.kwargs.get('author_id')
-        genre = get_object_or_404(Genre, id=author_id)
-        return genre
+        author = get_object_or_404(Author, id=author_id)
+        return author
 
 
 class StorySearchView(ListAPIView):
