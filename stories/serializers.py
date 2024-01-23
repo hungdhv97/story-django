@@ -88,6 +88,8 @@ class StoryQueryParameterSerializer(serializers.Serializer):
     is_hot = serializers.BooleanField(required=False)
     is_new = serializers.BooleanField(required=False)
     status = serializers.CharField(required=False)
+    total_chapters_from = serializers.IntegerField(required=False)
+    total_chapters_to = serializers.IntegerField(required=False)
 
 
 class StoryInChapterSerializer(serializers.ModelSerializer):

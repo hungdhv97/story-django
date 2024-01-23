@@ -75,7 +75,16 @@ class StoryListView(ListAPIView):
         if 'status' in validated_data:
             filters &= Q(status=validated_data['status'])
 
+        if 'total_chapters_from' in validated_data:
+            filters &= Q(total_chapters__gte=validated_data['total_chapters_from'])
+
+        if 'total_chapters_to' in validated_data:
+            filters &= Q(total_chapters__lte=validated_data['total_chapters_to'])
+
         queryset = queryset.filter(filters)
+
+        if 'total_chapters_from' in validated_data or 'total_chapters_to' in validated_data:
+            queryset = queryset.order_by('-total_chapters')
 
         return queryset
 
