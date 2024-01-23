@@ -84,7 +84,7 @@ class TopStorySerializer(serializers.ModelSerializer):
 
 class StoryQueryParameterSerializer(serializers.Serializer):
     author_id = serializers.IntegerField(required=False)
-    genre_id = serializers.IntegerField(required=False)
+    genre_slug = serializers.CharField(required=False)
     is_hot = serializers.BooleanField(required=False)
     is_new = serializers.BooleanField(required=False)
     status = serializers.CharField(required=False)

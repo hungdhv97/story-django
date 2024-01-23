@@ -63,8 +63,8 @@ class StoryListView(ListAPIView):
         if 'author_id' in validated_data:
             filters &= Q(author__id=validated_data['author_id'])
 
-        if 'genre_id' in validated_data:
-            filters &= Q(storygenre__genre__id=validated_data['genre_id'])
+        if 'genre_slug' in validated_data:
+            filters &= Q(storygenre__genre__slug=validated_data['genre_slug'])
 
         if 'is_hot' in validated_data and validated_data['is_hot'] is True:
             filters &= Q(is_hot=True)
