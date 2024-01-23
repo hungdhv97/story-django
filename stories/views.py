@@ -206,6 +206,16 @@ class GenreListView(ListAPIView):
     queryset = Genre.objects.all()
 
 
+class GenreDetailView(RetrieveAPIView):
+    serializer_class = GenreSerializer
+    lookup_field = 'slug'
+
+    def get_object(self):
+        slug = self.kwargs.get('slug')
+        genre = get_object_or_404(Genre, slug=slug)
+        return genre
+
+
 class StorySearchView(ListAPIView):
     serializer_class = StorySerializer
 

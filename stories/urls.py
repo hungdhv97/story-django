@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import StoryListView, StoryDetailView, ChapterListView, ChapterDetailView, RatingCreateView, GenreListView, \
-    StorySearchView, ChapterShortInfoListView, TopStoryListView
+    StorySearchView, ChapterShortInfoListView, TopStoryListView, GenreDetailView
 
 urlpatterns = [
     path('stories/', StoryListView.as_view(), name='story-list'),
@@ -13,5 +13,6 @@ urlpatterns = [
     path('chapters/<int:chapterId>/', ChapterDetailView.as_view(), name='chapter-detail'),
     path('ratings/', RatingCreateView.as_view(), name='rating-create'),
     path('genres/', GenreListView.as_view(), name='genre-list'),
+    path('genres/<slug:slug>/', GenreDetailView.as_view(), name='genre-detail'),
     path('search/', StorySearchView.as_view(), name='story-search'),
 ]
