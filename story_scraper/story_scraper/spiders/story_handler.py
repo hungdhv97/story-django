@@ -3,6 +3,7 @@ import random
 import re
 from datetime import datetime, timedelta
 
+from django.utils import timezone
 from scrapy import Request
 
 from stories.models import Author, Genre, Story, Status, StoryGenre, Chapter, Rating, ReadingStats
@@ -46,7 +47,7 @@ class ChapterHandler:
     def save_chapter(self, response):
         title = ''.join(response.css(".chapter-title ::text").getall()).replace('\u200B', '')
         content = "\n".join(response.css(".chapter-c ::text").getall()).replace("\u00A0", " ")
-        published_date = datetime.now().strftime("%Y-%m-%d")
+        published_date = timezone.now()
         existing_chapter = Chapter.objects.filter(story_id=self.story.id, title=title).first()
         if existing_chapter is not None:
             return existing_chapter

@@ -107,7 +107,7 @@ class Chapter(models.Model):
     story = models.ForeignKey(Story, on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
     content = models.TextField(blank=True)
-    published_date = models.DateField()
+    published_date = models.DateTimeField()
 
     def __str__(self):
         return f'{self.title}'

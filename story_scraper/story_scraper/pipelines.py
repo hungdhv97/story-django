@@ -33,3 +33,4 @@ class ClearDatabasePipeline:
             elif connection.vendor == 'sqlite':
                 # Delete entries for tables starting with 'stories' in sqlite_sequence
                 cursor.execute("DELETE FROM sqlite_sequence WHERE name LIKE 'stories%';")
+                cursor.execute('VACUUM;')
