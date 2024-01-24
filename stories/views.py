@@ -243,7 +243,7 @@ class StorySearchView(ListAPIView):
         queryset = Story.objects.filter(
             Q(title__icontains=text) |
             Q(author__name__icontains=text)
-        )
+        )[:5]
         return queryset
 
 
