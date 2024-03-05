@@ -43,7 +43,7 @@ class StorySerializer(serializers.ModelSerializer):
         ]
 
     def get_cover_photo(self, obj):
-        return obj.cover_photo.url
+        return "{}.jpg".format(obj.cover_photo.url)
 
     def get_genres(self, obj):
         story_genres = StoryGenre.objects.filter(story=obj)

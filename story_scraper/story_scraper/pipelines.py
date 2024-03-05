@@ -10,8 +10,9 @@ from stories.models import Genre, Author, StoryGenre, Rating, ReadingStats, Stor
 
 class ClearDatabasePipeline:
     def open_spider(self, spider):
-        self.clear_database()
-        self.reset_auto_increment_stories()
+        pass
+        # self.clear_database()
+        # self.reset_auto_increment_stories()
 
     def clear_database(self):
         Genre.objects.all().delete()
