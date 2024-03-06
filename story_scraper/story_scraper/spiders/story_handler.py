@@ -97,6 +97,7 @@ class StoryHandler:
 
     def save_story(self, response, author):
         title = response.css('.col-truyen-main h3.title::text').get()
+        shorten_title = title[:title.find('(')].strip() if title.find('(') != -1 else title.strip()
         description = re.sub(
             r'<[^>]+>',
             '',
@@ -120,10 +121,10 @@ class StoryHandler:
         source = story_source or ""
         cover_photo = response.css('.col-truyen-main .info-holder img::attr(src)').get()
 
-        existing_story = Story.objects.filter(title=title).first()
+        existing_story = Story.objects.filter(title=shorten_title).first()
         if existing_story is not None:
             return existing_story
-        story = Story(title=title, description=description, author_id=author.id, created_date=created_date,
+        story = Story(title=shorten_title, description=description, author_id=author.id, created_date=created_date,
                       status=status,
                       source=source, cover_photo=cover_photo)
         story.save()
