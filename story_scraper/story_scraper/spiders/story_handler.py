@@ -7,7 +7,6 @@ from django.utils import timezone
 from scrapy import Request
 
 from stories.models import Author, Genre, Story, Status, StoryGenre, Chapter, Rating, ReadingStats
-from story_scraper.story_scraper.consts import MAX_PAGES_CHAPTERS
 
 
 class ChapterHandler:
@@ -156,33 +155,3 @@ class StoryHandler:
             if existing_reading_stats is None:
                 reading_stats = ReadingStats(story_id=story.id, read_count=read_count, date=date_str)
                 reading_stats.save()
-
-    def parse_chapters(self, response, story):
-        page_number = response.meta.get('page_number', 1)
-        chapter_urls = response.css('.col-truyen-main #list-chapter .row ul li a::attr(href)').getall()
-
-        for chapter_url in chapter_urls:
-            yield response.follow(chapter_url, callback=self.parse_chapter, cb_kwargs={'story': story})
-
-        next_page = response.xpath(
-            '//ul[contains(@class, "pagination")]//li[contains(@class, "active")]/following-sibling::'
-            'li[1][not(contains(@class, "dropup"))]/a/@href').get()
-
-        if next_page is not None and page_number < MAX_PAGES_CHAPTERS:
-            yield response.follow(next_page, callback=self.parse_chapters,
-                                  cb_kwargs={'story': story}, meta={'page_number': page_number + 1})
-
-    def parse_chapter(self, response, story):
-        chapter = self.save_chapter(response, story)
-
-    def save_chapter(self, response, story):
-        title = response.css(".chapter-title::text").get()
-        content = "\n".join(response.css(".chapter-c ::text").getall()).replace("\u00A0", " ")
-        published_date = datetime.now().strftime("%Y-%m-%d")
-        existing_chapter = Chapter.objects.filter(story_id=story.id, title=title).first()
-        if existing_chapter is not None:
-            return existing_chapter
-        chapter = Chapter(story_id=story.id, title=title, content=content,
-                          published_date=published_date)
-        chapter.save()
-        return chapter
