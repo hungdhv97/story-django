@@ -14,7 +14,7 @@ class ListStoriesSpider(Spider):
         'ITEM_PIPELINES': {
             "story_scraper.story_scraper.pipelines.ClearDatabasePipeline": 300,
         },
-        'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter',  # Disable duplicate filter
+        'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter',
     }
 
     def __init__(self, from_story_index, to_story_index, from_chapter_index, to_chapter_index, *args, **kwargs):
@@ -22,10 +22,9 @@ class ListStoriesSpider(Spider):
         self.from_story_index = from_story_index
         self.to_story_index = to_story_index
         self.story_handler = StoryHandler(from_chapter_index, to_chapter_index)
-        self.stories_per_page = None  # Will be set after parsing the first page
+        self.stories_per_page = None
 
     def start_requests(self):
-        # Start with the first page to determine stories per page
         yield Request(url=self.base_url.format(1), callback=self.parse_initial)
 
     def parse_initial(self, response):

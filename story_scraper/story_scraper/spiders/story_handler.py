@@ -16,6 +16,7 @@ class ChapterHandler:
         self.from_chapter_index = from_chapter_index
         self.to_chapter_index = to_chapter_index
         self.chapters_per_page = None
+        self.last_page = None
 
     def start_requests(self):
         yield Request(url=self.base_url.format(1), callback=self.parse_initial)
@@ -23,6 +24,7 @@ class ChapterHandler:
     def parse_initial(self, response):
         chapters = response.css('.col-truyen-main #list-chapter .row ul li a::attr(href)')
         self.chapters_per_page = len(chapters)
+        self.last_page = self.get_last_page(response)
         from_page = math.ceil(self.from_chapter_index / self.chapters_per_page)
         yield Request(url=self.base_url.format(from_page), callback=self.parse)
 
@@ -37,7 +39,7 @@ class ChapterHandler:
         for chapter_url in chapter_urls[start_index_on_page:end_index_on_page + 1]:
             yield response.follow(chapter_url, callback=self.parse_chapter)
 
-        if page_number * self.chapters_per_page < self.to_chapter_index:
+        if page_number * self.chapters_per_page < self.to_chapter_index and page_number < self.last_page:
             yield Request(url=self.base_url.format(page_number + 1), callback=self.parse)
 
     def parse_chapter(self, response):
@@ -54,6 +56,18 @@ class ChapterHandler:
                           published_date=published_date)
         chapter.save()
         return chapter
+
+    def get_last_page(self, response):
+        last_page_url = response.css("#list-chapter .pagination li a:contains('Cuối ')::attr(href)").get()
+        if not last_page_url:
+            all_page_urls = response.css("#list-chapter .pagination li a::attr(href)").getall()
+            if all_page_urls and len(all_page_urls) > 1:
+                last_page_url = all_page_urls[-2]
+        if last_page_url:
+            last_page_str = last_page_url.split('trang-')[-1].split('/')[0]
+            if last_page_str.isdigit():
+                return int(last_page_str)
+        return -1
 
 
 class StoryHandler:
