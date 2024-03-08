@@ -4,8 +4,8 @@ from scrapy.settings import Settings
 from story_scraper.story_scraper import settings
 from story_scraper.story_scraper.spiders.list_stories_spider import ListStoriesSpider
 
-from_story_index = 105
-to_story_index = 106
+from_story_index = 1
+to_story_index = 100
 from_chapter_index = 1
 to_chapter_index = 1000
 crawler_settings = Settings()

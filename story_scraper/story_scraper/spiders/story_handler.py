@@ -47,12 +47,14 @@ class ChapterHandler:
 
     def save_chapter(self, response):
         title = ''.join(response.css(".chapter-title ::text").getall()).replace('\u200B', '')
+        match = re.search(r'Chương (\d+)', title)
+        number_chapter = int(match.group(1)) if match else None
         content = "\n".join(response.css(".chapter-c ::text").getall()).replace("\u00A0", " ")
         published_date = timezone.now()
         existing_chapter = Chapter.objects.filter(story_id=self.story.id, title=title).first()
         if existing_chapter is not None:
             return existing_chapter
-        chapter = Chapter(story_id=self.story.id, title=title, content=content,
+        chapter = Chapter(story_id=self.story.id, number_chapter=number_chapter, title=title, content=content,
                           published_date=published_date)
         chapter.save()
         return chapter
