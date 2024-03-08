@@ -48,11 +48,12 @@ class Story(models.Model):
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    created_date = models.DateField()
+    created_date = models.DateField(db_index=True)
     status = models.CharField(
         max_length=9,
         choices=Status.choices,
         default=Status.ONGOING,
+        db_index=True
     )
     source = models.CharField(max_length=255, blank=True)
     cover_photo = CloudinaryField('image')
@@ -108,6 +109,7 @@ class Chapter(models.Model):
     title = models.CharField(max_length=255, blank=True)
     content = models.TextField(blank=True)
     published_date = models.DateTimeField()
+    number_chapter = models.IntegerField(null=True, blank=True, db_index=True)
 
     def __str__(self):
         return f'{self.title}'
@@ -121,7 +123,7 @@ class Rating(models.Model):
 class ReadingStats(models.Model):
     story = models.ForeignKey(Story, on_delete=models.CASCADE)
     read_count = models.IntegerField()
-    date = models.DateField()
+    date = models.DateField(db_index=True)
 
     class Meta:
         unique_together = (('story', 'date'),)

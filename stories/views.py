@@ -129,21 +129,7 @@ class ChapterListView(ListAPIView):
 
     def get_queryset(self):
         slug = self.kwargs.get('slug')
-        story = get_object_or_404(Story, slug=slug)
-        queryset = Chapter.objects.filter(story=story)
-
-        queryset = queryset.annotate(
-            number_chapter=Cast(
-                Trim(
-                    Substr(
-                        'title',
-                        StrIndex('title', Value('Chương ')) + 7,
-                        Length('title')
-                    )
-                ),
-                IntegerField()
-            )
-        )
+        queryset = Chapter.objects.filter(story__slug=slug).select_related('story')
 
         sort = self.request.query_params.get('sort')
         if sort == 'desc':
@@ -162,19 +148,6 @@ class ChapterShortInfoListView(ListAPIView):
         slug = self.kwargs.get('slug')
         story = get_object_or_404(Story, slug=slug)
         queryset = Chapter.objects.filter(story=story)
-
-        queryset = queryset.annotate(
-            number_chapter=Cast(
-                Trim(
-                    Substr(
-                        'title',
-                        StrIndex('title', Value('Chương ')) + 7,
-                        Length('title')
-                    )
-                ),
-                IntegerField()
-            )
-        )
 
         sort = self.request.query_params.get('sort')
         if sort == 'desc':

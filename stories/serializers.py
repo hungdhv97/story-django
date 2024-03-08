@@ -1,5 +1,3 @@
-import re
-
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
@@ -21,7 +19,7 @@ class GenreSerializer(serializers.ModelSerializer):
 class ChapterInStorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Chapter
-        fields = ['id', 'title', 'published_date']
+        fields = ['id', 'number_chapter', 'title', 'published_date']
 
 
 class StorySerializer(serializers.ModelSerializer):
@@ -51,16 +49,7 @@ class StorySerializer(serializers.ModelSerializer):
         return GenreSerializer(genres, many=True).data
 
     def get_latest_chapter(self, obj):
-        chapters = Chapter.objects.filter(story=obj)
-        latest_chapter = None
-        highest_number = -1
-        for chapter in chapters:
-            match = re.search(r'Chương (\d+)', chapter.title)
-            if match:
-                number = int(match.group(1))
-                if number > highest_number:
-                    highest_number = number
-                    latest_chapter = chapter
+        latest_chapter = Chapter.objects.filter(story=obj).order_by('-number_chapter').first()
         return ChapterInStorySerializer(latest_chapter).data if latest_chapter else None
 
     def get_total_reads(self, obj):
@@ -103,7 +92,7 @@ class ChapterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Chapter
-        fields = ['id', 'story', 'title', 'content', 'published_date']
+        fields = ['id', 'story', 'number_chapter', 'title', 'content', 'published_date']
 
 
 class RatingSerializer(serializers.ModelSerializer):
