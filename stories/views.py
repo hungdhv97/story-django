@@ -1,14 +1,11 @@
 from datetime import datetime, timedelta
 
-from django.db.models import Count, Case, When, BooleanField, Avg, Q
+from django.db.models import Case, When, BooleanField, Avg, Q
 from django.db.models import IntegerField
 from django.db.models import Sum, OuterRef, Subquery
 from django.db.models import Value
-from django.db.models.functions import Cast
-from django.db.models.functions import Now, Round
-from django.db.models.functions import StrIndex, Substr, Length, Trim
+from django.db.models.functions import Round
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.generics import RetrieveAPIView
@@ -16,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from story_site.pagination import CustomPagination
-from .consts import HOT_STORY_TOTAL_READS, NEW_STORY_DIFF_DATE
+from .consts import HOT_STORY_TOTAL_READS
 from .models import Story, Chapter, Genre, ReadingStats, Author
 from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterSerializer, RatingSerializer, \
     GenreSerializer, ChapterInStorySerializer, TopStorySerializer, AuthorSerializer
@@ -35,7 +32,6 @@ class StoryListView(ListAPIView):
 
         one_week_ago = datetime.now() - timedelta(days=7)
         queryset = queryset.annotate(
-            total_chapters=Count('chapter', distinct=True),
             total_reads_week=Sum(
                 Case(
                     When(readingstats__date__gte=one_week_ago, then='readingstats__read_count'),
@@ -45,11 +41,6 @@ class StoryListView(ListAPIView):
                 distinct=True
             ),
             total_reads_all=Sum('readingstats__read_count', distinct=True),
-            is_new=Case(
-                When(created_date__gte=Now() - timezone.timedelta(days=NEW_STORY_DIFF_DATE), then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField()
-            ),
             is_hot=Case(
                 When(total_reads_week__gte=HOT_STORY_TOTAL_READS, then=Value(True)),
                 default=Value(False),
@@ -97,7 +88,6 @@ class StoryDetailView(RetrieveAPIView):
         slug = self.kwargs.get('slug', None)
         one_week_ago = datetime.now() - timedelta(days=7)
         queryset = Story.objects.annotate(
-            total_chapters=Count('chapter', distinct=True),
             total_reads_week=Sum(
                 Case(
                     When(readingstats__date__gte=one_week_ago, then='readingstats__read_count'),
@@ -107,11 +97,6 @@ class StoryDetailView(RetrieveAPIView):
                 distinct=True
             ),
             total_reads_all=Sum('readingstats__read_count', distinct=True),
-            is_new=Case(
-                When(created_date__gte=Now() - timezone.timedelta(days=NEW_STORY_DIFF_DATE), then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField()
-            ),
             is_hot=Case(
                 When(total_reads_week__gte=HOT_STORY_TOTAL_READS, then=Value(True)),
                 default=Value(False),

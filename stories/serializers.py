@@ -1,6 +1,10 @@
+from datetime import timedelta
+
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import serializers
 
+from .consts import NEW_STORY_DIFF_DATE
 from .models import Story, Author, Genre, Chapter, StoryGenre, Rating
 
 
@@ -23,10 +27,10 @@ class ChapterInStorySerializer(serializers.ModelSerializer):
 
 
 class StorySerializer(serializers.ModelSerializer):
-    total_chapters = serializers.IntegerField(read_only=True)
+    total_chapters = serializers.SerializerMethodField()
     total_reads = serializers.SerializerMethodField()
-    is_new = serializers.BooleanField(read_only=True)
-    is_hot = serializers.BooleanField(read_only=True)
+    is_new = serializers.SerializerMethodField()
+    is_hot = serializers.SerializerMethodField()
     avg_rating = serializers.FloatField(read_only=True)
     genres = serializers.SerializerMethodField()
     latest_chapter = serializers.SerializerMethodField()
@@ -40,16 +44,24 @@ class StorySerializer(serializers.ModelSerializer):
             'source', 'cover_photo', 'is_new', 'is_hot', 'avg_rating', 'slug', 'latest_chapter'
         ]
 
-    def get_cover_photo(self, obj):
-        return obj.cover_photo.url
+    def get_total_chapters(self, story):
+        return story.chapter_set.count()
 
-    def get_genres(self, obj):
-        story_genres = StoryGenre.objects.filter(story=obj)
+    def get_is_new(self, story):
+        created_date = timezone.localtime(story.created_date)
+        diff_days_ago = timezone.now() - timedelta(days=NEW_STORY_DIFF_DATE)
+        return created_date >= diff_days_ago
+
+    def get_cover_photo(self, story):
+        return story.cover_photo.url
+
+    def get_genres(self, story):
+        story_genres = StoryGenre.objects.filter(story=story)
         genres = Genre.objects.filter(storygenre__in=story_genres)
         return GenreSerializer(genres, many=True).data
 
-    def get_latest_chapter(self, obj):
-        latest_chapter = Chapter.objects.filter(story=obj).order_by('-number_chapter').first()
+    def get_latest_chapter(self, story):
+        latest_chapter = Chapter.objects.filter(story=story).order_by('-number_chapter').first()
         return ChapterInStorySerializer(latest_chapter).data if latest_chapter else None
 
     def get_total_reads(self, obj):
@@ -64,11 +76,11 @@ class TopStorySerializer(serializers.ModelSerializer):
         model = Story
         fields = ('id', 'title', 'cover_photo', 'slug', 'total_reads')
 
-    def get_total_reads(self, obj):
-        return getattr(obj, 'total_reads', 0)
+    def get_total_reads(self, story):
+        return getattr(story, 'total_reads', 0)
 
-    def get_cover_photo(self, obj):
-        return obj.cover_photo.url if obj.cover_photo else None
+    def get_cover_photo(self, story):
+        return story.cover_photo.url if story.cover_photo else None
 
 
 class StoryQueryParameterSerializer(serializers.Serializer):

@@ -48,7 +48,7 @@ class Story(models.Model):
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    created_date = models.DateField(db_index=True)
+    created_date = models.DateTimeField(db_index=True)
     status = models.CharField(
         max_length=9,
         choices=Status.choices,
@@ -123,7 +123,7 @@ class Rating(models.Model):
 class ReadingStats(models.Model):
     story = models.ForeignKey(Story, on_delete=models.CASCADE)
     read_count = models.IntegerField()
-    date = models.DateField(db_index=True)
+    date = models.DateTimeField(db_index=True)
 
     class Meta:
         unique_together = (('story', 'date'),)
