@@ -1,9 +1,8 @@
 from datetime import datetime, timedelta
 
-from django.db.models import Case, When, BooleanField, Q
 from django.db.models import IntegerField
+from django.db.models import Q
 from django.db.models import Sum, OuterRef, Subquery
-from django.db.models import Value
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import ListAPIView, CreateAPIView
@@ -36,18 +35,8 @@ class StoryListView(ListAPIView):
             filters &= Q(storygenre__genre__slug=validated_data['genre_slug'])
 
         if 'is_hot' in validated_data and validated_data['is_hot'] is True:
-            queryset = queryset.annotate(
-                is_hot=Case(
-                    When(
-                        readingstats__date__gte=timezone.now() - timedelta(days=7),
-                        then=Value(True)
-                    ),
-                    default=Value(False),
-                    output_field=BooleanField()
-                )
-            )
-
             filters &= Q(is_hot=True)
+
         if 'is_new' in validated_data and validated_data['is_new'] is True:
             filters &= Q(is_new=True)
 
