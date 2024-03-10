@@ -1,10 +1,12 @@
 from datetime import timedelta
+from math import ceil
 
+from django.db.models import Sum, Avg
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers
 
-from .consts import NEW_STORY_DIFF_DATE
+from .consts import NEW_STORY_DIFF_DATE, HOT_STORY_TOTAL_READS
 from .models import Story, Author, Genre, Chapter, StoryGenre, Rating
 
 
@@ -31,7 +33,7 @@ class StorySerializer(serializers.ModelSerializer):
     total_reads = serializers.SerializerMethodField()
     is_new = serializers.SerializerMethodField()
     is_hot = serializers.SerializerMethodField()
-    avg_rating = serializers.FloatField(read_only=True)
+    avg_rating = serializers.SerializerMethodField()
     genres = serializers.SerializerMethodField()
     latest_chapter = serializers.SerializerMethodField()
     cover_photo = serializers.SerializerMethodField()
@@ -64,8 +66,17 @@ class StorySerializer(serializers.ModelSerializer):
         latest_chapter = Chapter.objects.filter(story=story).order_by('-number_chapter').first()
         return ChapterInStorySerializer(latest_chapter).data if latest_chapter else None
 
-    def get_total_reads(self, obj):
-        return getattr(obj, 'total_reads_all', 0)
+    def get_total_reads(self, story):
+        return story.readingstats_set.aggregate(Sum('read_count'))['read_count__sum'] or 0
+
+    def get_is_hot(self, story):
+        one_week_ago = timezone.now() - timedelta(days=7)
+        total_reads_week = story.readingstats_set.filter(date__gte=one_week_ago).aggregate(Sum('read_count'))[
+            'read_count__sum']
+        return total_reads_week >= HOT_STORY_TOTAL_READS if total_reads_week is not None else False
+
+    def get_avg_rating(self, story):
+        return ceil(story.rating_set.aggregate(avg_rating=Avg('rating_value'))['avg_rating'] or 0)
 
 
 class TopStorySerializer(serializers.ModelSerializer):

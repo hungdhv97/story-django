@@ -1,10 +1,9 @@
 from datetime import datetime, timedelta
 
-from django.db.models import Case, When, BooleanField, Avg, Q
+from django.db.models import Case, When, BooleanField, Q
 from django.db.models import IntegerField
 from django.db.models import Sum, OuterRef, Subquery
 from django.db.models import Value
-from django.db.models.functions import Round
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import ListAPIView, CreateAPIView
@@ -13,7 +12,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from story_site.pagination import CustomPagination
-from .consts import HOT_STORY_TOTAL_READS
 from .models import Story, Chapter, Genre, ReadingStats, Author
 from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterSerializer, RatingSerializer, \
     GenreSerializer, ChapterInStorySerializer, TopStorySerializer, AuthorSerializer
@@ -25,29 +23,9 @@ class StoryListView(ListAPIView):
 
     def get_queryset(self):
         queryset = Story.objects.select_related("author")
-
         param_serializer = StoryQueryParameterSerializer(data=self.request.query_params)
         param_serializer.is_valid(raise_exception=True)
         validated_data = param_serializer.validated_data
-
-        one_week_ago = datetime.now() - timedelta(days=7)
-        queryset = queryset.annotate(
-            total_reads_week=Sum(
-                Case(
-                    When(readingstats__date__gte=one_week_ago, then='readingstats__read_count'),
-                    default=0,
-                    output_field=IntegerField(),
-                ),
-                distinct=True
-            ),
-            total_reads_all=Sum('readingstats__read_count', distinct=True),
-            is_hot=Case(
-                When(total_reads_week__gte=HOT_STORY_TOTAL_READS, then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField()
-            ),
-            avg_rating=Round(Avg('rating__rating_value'), 2),
-        )
 
         filters = Q()
 
@@ -58,8 +36,18 @@ class StoryListView(ListAPIView):
             filters &= Q(storygenre__genre__slug=validated_data['genre_slug'])
 
         if 'is_hot' in validated_data and validated_data['is_hot'] is True:
-            filters &= Q(is_hot=True)
+            queryset = queryset.annotate(
+                is_hot=Case(
+                    When(
+                        readingstats__date__gte=timezone.now() - timedelta(days=7),
+                        then=Value(True)
+                    ),
+                    default=Value(False),
+                    output_field=BooleanField()
+                )
+            )
 
+            filters &= Q(is_hot=True)
         if 'is_new' in validated_data and validated_data['is_new'] is True:
             filters &= Q(is_new=True)
 
@@ -86,24 +74,7 @@ class StoryDetailView(RetrieveAPIView):
 
     def get_object(self):
         slug = self.kwargs.get('slug', None)
-        one_week_ago = datetime.now() - timedelta(days=7)
-        queryset = Story.objects.annotate(
-            total_reads_week=Sum(
-                Case(
-                    When(readingstats__date__gte=one_week_ago, then='readingstats__read_count'),
-                    default=0,
-                    output_field=IntegerField(),
-                ),
-                distinct=True
-            ),
-            total_reads_all=Sum('readingstats__read_count', distinct=True),
-            is_hot=Case(
-                When(total_reads_week__gte=HOT_STORY_TOTAL_READS, then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField()
-            ),
-            avg_rating=Round(Avg('rating__rating_value'), 2),
-        )
+        queryset = Story.objects.all()
         story = get_object_or_404(queryset, slug=slug)
         return story
 
