@@ -48,16 +48,17 @@ class Story(models.Model):
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    created_date = models.DateTimeField(db_index=True)
+    created_date = models.DateTimeField()
     status = models.CharField(
         max_length=9,
         choices=Status.choices,
         default=Status.ONGOING,
-        db_index=True
+
     )
     source = models.CharField(max_length=255, blank=True)
     cover_photo = CloudinaryField('image')
     slug = models.SlugField(max_length=255, unique=True, editable=False, blank=True)
+    genres = models.ManyToManyField(Genre, through='StoryGenre')
 
     def generate_cover_photo_public_id(self, original_url):
         hash_digest = hashlib.sha256(original_url.encode()).hexdigest()[:10]
@@ -109,7 +110,7 @@ class Chapter(models.Model):
     title = models.CharField(max_length=255, blank=True)
     content = models.TextField(blank=True)
     published_date = models.DateTimeField()
-    number_chapter = models.IntegerField(null=True, blank=True, db_index=True)
+    number_chapter = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.title}'
@@ -123,7 +124,7 @@ class Rating(models.Model):
 class ReadingStats(models.Model):
     story = models.ForeignKey(Story, on_delete=models.CASCADE)
     read_count = models.IntegerField()
-    date = models.DateTimeField(db_index=True)
+    date = models.DateTimeField()
 
     class Meta:
         unique_together = (('story', 'date'),)
