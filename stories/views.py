@@ -1,13 +1,11 @@
 from datetime import datetime, timedelta
 
-from django.db.models import Count, Case, When, BooleanField, Avg, Q
 from django.db.models import IntegerField
+from django.db.models import Q
 from django.db.models import Sum, OuterRef, Subquery
 from django.db.models import Value
 from django.db.models.functions import Cast
-from django.db.models.functions import Now
 from django.db.models.functions import StrIndex, Substr, Length, Trim
-from django.db.models.functions.math import Ceil
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -17,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from story_site.pagination import CustomPagination
-from .consts import HOT_STORY_TOTAL_READS, NEW_STORY_DIFF_DATE
+from .consts import NEW_STORY_DIFF_DATE
 from .models import Story, Chapter, Genre, ReadingStats, Author
 from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterSerializer, RatingSerializer, \
     GenreSerializer, ChapterInStorySerializer, TopStorySerializer, AuthorSerializer
@@ -28,40 +26,35 @@ class StoryListView(ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        queryset = Story.objects.select_related("author").prefetch_related(
-            "genres",
-        )
-
         param_serializer = StoryQueryParameterSerializer(data=self.request.query_params)
         param_serializer.is_valid(raise_exception=True)
         validated_data = param_serializer.validated_data
 
         one_week_ago = timezone.now() - timezone.timedelta(days=7)
         diff_days_ago = timezone.now() - timedelta(days=NEW_STORY_DIFF_DATE)
-        queryset = queryset.annotate(
-            total_chapters=Count('chapter', distinct=True),
-            total_reads_week=Sum(
-                Case(
-                    When(readingstats__date__gte=one_week_ago, then='readingstats__read_count'),
-                    default=0,
-                    output_field=IntegerField(),
-                ),
-                distinct=True
-            ),
-            total_reads_all=Sum('readingstats__read_count', distinct=True),
-            is_new=Case(
-                When(created_date__gte=Now() - timezone.timedelta(days=NEW_STORY_DIFF_DATE), then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField()
-            ),
-            is_hot=Case(
-                When(total_reads_week__gte=HOT_STORY_TOTAL_READS, then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField()
-            ),
-            avg_rating=Ceil(Avg('rating__rating_value')),
-        )
-
+        # queryset = queryset.annotate(
+        #     total_chapters=Count('chapter', distinct=True),
+        #     total_reads_week=Sum(
+        #         Case(
+        #             When(readingstats__date__gte=one_week_ago, then='readingstats__read_count'),
+        #             default=0,
+        #             output_field=IntegerField(),
+        #         ),
+        #         distinct=True
+        #     ),
+        #     total_reads_all=Sum('readingstats__read_count', distinct=True),
+        #     is_new=Case(
+        #         When(created_date__gte=Now() - timezone.timedelta(days=NEW_STORY_DIFF_DATE), then=Value(True)),
+        #         default=Value(False),
+        #         output_field=BooleanField()
+        #     ),
+        #     is_hot=Case(
+        #         When(total_reads_week__gte=HOT_STORY_TOTAL_READS, then=Value(True)),
+        #         default=Value(False),
+        #         output_field=BooleanField()
+        #     ),
+        #     avg_rating=Ceil(Avg('rating__rating_value')),
+        # )
         filters = Q()
 
         if 'author_id' in validated_data:
@@ -79,13 +72,14 @@ class StoryListView(ListAPIView):
         if 'status' in validated_data:
             filters &= Q(status=validated_data['status'])
 
-        if 'total_chapters_from' in validated_data:
-            filters &= Q(total_chapters__gte=validated_data['total_chapters_from'])
+        if 'total_chapters_from' in validated_data or 'total_chapters_to' in validated_data:
+            if 'total_chapters_from' in validated_data:
+                filters &= Q(total_chapters__gte=validated_data['total_chapters_from'])
 
-        if 'total_chapters_to' in validated_data:
-            filters &= Q(total_chapters__lte=validated_data['total_chapters_to'])
+            if 'total_chapters_to' in validated_data:
+                filters &= Q(total_chapters__lte=validated_data['total_chapters_to'])
 
-        queryset = queryset.filter(filters)
+        queryset = Story.objects.prefetch_related('chapter_set', 'readingstats_set', 'rating_set').filter(filters)
 
         if 'total_chapters_from' in validated_data or 'total_chapters_to' in validated_data:
             queryset = queryset.order_by('-total_chapters')
