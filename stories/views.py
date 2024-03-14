@@ -1,22 +1,18 @@
 from datetime import datetime, timedelta
 
-from django.db.models import IntegerField
-from django.db.models import Q
-from django.db.models import Sum, OuterRef, Subquery
-from django.db.models import Value
-from django.db.models.functions import Cast
-from django.db.models.functions import StrIndex, Substr, Length, Trim
+from django.db.models import Count, Avg, Q
+from django.db.models import IntegerField, Sum, OuterRef, Subquery, Value
+from django.db.models.functions import Cast, StrIndex, Substr, Length, Trim
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.generics import ListAPIView, CreateAPIView
-from rest_framework.generics import RetrieveAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from story_site.pagination import CustomPagination
-from .consts import NEW_STORY_DIFF_DATE
-from .models import Story, Chapter, Genre, ReadingStats, Author
+from .consts import NEW_STORY_DIFF_DAYS, HOT_STORY_TOTAL_READS
+from .models import Story, Chapter, Genre, ReadingStats, Author, Rating
 from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterSerializer, RatingSerializer, \
     GenreSerializer, ChapterInStorySerializer, TopStorySerializer, AuthorSerializer
 
@@ -26,63 +22,59 @@ class StoryListView(ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
+        queryset = Story.objects.select_related('author').prefetch_related('genres')
         param_serializer = StoryQueryParameterSerializer(data=self.request.query_params)
         param_serializer.is_valid(raise_exception=True)
         validated_data = param_serializer.validated_data
 
+        total_chapters_subquery = Chapter.objects.filter(
+            story_id=OuterRef('pk')
+        ).values('story').annotate(total=Count('id')).values('total')
+        latest_chapter_subquery = Chapter.objects.filter(
+            story_id=OuterRef('pk')
+        ).order_by('-number_chapter').values('id')[:1]
+        avg_rating_subquery = Rating.objects.filter(
+            story_id=OuterRef('pk')
+        ).values('story').annotate(average=Avg('rating_value')).values('average')
+        total_reads_subquery = ReadingStats.objects.filter(
+            story_id=OuterRef('pk')
+        ).values('story').annotate(total_read=Sum('read_count')).values('total_read')
         one_week_ago = timezone.now() - timezone.timedelta(days=7)
-        diff_days_ago = timezone.now() - timedelta(days=NEW_STORY_DIFF_DATE)
-        # queryset = queryset.annotate(
-        #     total_chapters=Count('chapter', distinct=True),
-        #     total_reads_week=Sum(
-        #         Case(
-        #             When(readingstats__date__gte=one_week_ago, then='readingstats__read_count'),
-        #             default=0,
-        #             output_field=IntegerField(),
-        #         ),
-        #         distinct=True
-        #     ),
-        #     total_reads_all=Sum('readingstats__read_count', distinct=True),
-        #     is_new=Case(
-        #         When(created_date__gte=Now() - timezone.timedelta(days=NEW_STORY_DIFF_DATE), then=Value(True)),
-        #         default=Value(False),
-        #         output_field=BooleanField()
-        #     ),
-        #     is_hot=Case(
-        #         When(total_reads_week__gte=HOT_STORY_TOTAL_READS, then=Value(True)),
-        #         default=Value(False),
-        #         output_field=BooleanField()
-        #     ),
-        #     avg_rating=Ceil(Avg('rating__rating_value')),
-        # )
+        total_reads_week_subquery = ReadingStats.objects.filter(
+            story_id=OuterRef('pk'), date__gte=one_week_ago
+        ).values('story').annotate(total_read_week=Sum('read_count')).values('total_read_week')
+        queryset = queryset.annotate(
+            total_chapters=Subquery(total_chapters_subquery),
+            avg_rating=Subquery(avg_rating_subquery),
+            total_reads_week=Subquery(total_reads_week_subquery),
+            total_reads=Subquery(total_reads_subquery),
+            latest_chapter_id=Subquery(latest_chapter_subquery),
+        )
+
         filters = Q()
 
         if 'author_id' in validated_data:
             filters &= Q(author__id=validated_data['author_id'])
-
         if 'genre_slug' in validated_data:
             filters &= Q(storygenre__genre__slug=validated_data['genre_slug'])
-
         if 'is_hot' in validated_data and validated_data['is_hot'] is True:
-            filters &= Q(is_hot=True)
-
+            filters &= Q(total_reads_week__gte=HOT_STORY_TOTAL_READS)
         if 'is_new' in validated_data and validated_data['is_new'] is True:
+            diff_days_ago = timezone.now() - timezone.timedelta(days=NEW_STORY_DIFF_DAYS)
             filters &= Q(created_date__gte=diff_days_ago)
-
         if 'status' in validated_data:
             filters &= Q(status=validated_data['status'])
+        if 'total_chapters_from' in validated_data:
+            filters &= Q(total_chapters__gte=validated_data['total_chapters_from'])
+        if 'total_chapters_to' in validated_data:
+            filters &= Q(total_chapters__lte=validated_data['total_chapters_to'])
+        queryset = queryset.filter(filters)
 
+        order_fields = []
         if 'total_chapters_from' in validated_data or 'total_chapters_to' in validated_data:
-            if 'total_chapters_from' in validated_data:
-                filters &= Q(total_chapters__gte=validated_data['total_chapters_from'])
-
-            if 'total_chapters_to' in validated_data:
-                filters &= Q(total_chapters__lte=validated_data['total_chapters_to'])
-
-        queryset = Story.objects.prefetch_related('chapter_set', 'readingstats_set', 'rating_set').filter(filters)
-
-        if 'total_chapters_from' in validated_data or 'total_chapters_to' in validated_data:
-            queryset = queryset.order_by('-total_chapters')
+            order_fields.append('-total_chapters')
+        order_fields.append('-total_reads')
+        queryset = queryset.order_by(*order_fields)
 
         return queryset
 

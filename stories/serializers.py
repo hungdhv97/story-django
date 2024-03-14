@@ -1,11 +1,8 @@
-from math import ceil
-
-from django.db.models import Sum, Avg
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers
 
-from .consts import HOT_STORY_TOTAL_READS, NEW_STORY_DIFF_DATE
+from .consts import HOT_STORY_TOTAL_READS, NEW_STORY_DIFF_DAYS
 from .models import Story, Author, Genre, Chapter, Rating
 
 
@@ -28,15 +25,17 @@ class ChapterInStorySerializer(serializers.ModelSerializer):
 
 
 class StorySerializer(serializers.ModelSerializer):
-    total_chapters = serializers.SerializerMethodField()
-    total_reads = serializers.SerializerMethodField()
+    total_chapters = serializers.IntegerField()
+    total_reads = serializers.IntegerField()
     is_new = serializers.SerializerMethodField()
     is_hot = serializers.SerializerMethodField()
-    avg_rating = serializers.SerializerMethodField()
+    avg_rating = serializers.FloatField()
     latest_chapter = serializers.SerializerMethodField()
     cover_photo = serializers.SerializerMethodField()
     author = AuthorSerializer()
     genres = GenreSerializer(many=True, read_only=True)
+
+    NEW_STORY_CUTOFF_DATE = timezone.now() - timezone.timedelta(days=NEW_STORY_DIFF_DAYS)
 
     class Meta:
         model = Story
@@ -45,32 +44,22 @@ class StorySerializer(serializers.ModelSerializer):
             'source', 'cover_photo', 'is_new', 'is_hot', 'avg_rating', 'slug', 'latest_chapter'
         ]
 
-    def get_total_chapters(self, story):
-        return story.chapter_set.count()
-
-    def get_is_new(self, story):
-        created_date = timezone.localtime(story.created_date)
-        diff_days_ago = timezone.now() - timezone.timedelta(days=NEW_STORY_DIFF_DATE)
-        return created_date >= diff_days_ago
-
     def get_cover_photo(self, story):
         return story.cover_photo.url
 
-    def get_latest_chapter(self, story):
-        latest_chapter = story.chapter_set.order_by('-number_chapter').first()
-        return ChapterInStorySerializer(latest_chapter).data if latest_chapter else None
-
-    def get_total_reads(self, story):
-        return story.readingstats_set.aggregate(Sum('read_count'))['read_count__sum'] or 0
+    def get_is_new(self, story):
+        created_date = timezone.localtime(story.created_date)
+        diff_days_ago = self.NEW_STORY_CUTOFF_DATE
+        return created_date >= diff_days_ago
 
     def get_is_hot(self, story):
-        one_week_ago = timezone.now() - timezone.timedelta(days=7)
-        total_reads_week = story.readingstats_set.filter(date__gte=one_week_ago).aggregate(Sum('read_count'))[
-            'read_count__sum']
-        return total_reads_week >= HOT_STORY_TOTAL_READS if total_reads_week is not None else False
+        return story.total_reads_week >= HOT_STORY_TOTAL_READS if story.total_reads_week else False
 
-    def get_avg_rating(self, story):
-        return ceil(story.rating_set.aggregate(avg_rating=Avg('rating_value'))['avg_rating'] or 0)
+    def get_latest_chapter(self, story):
+        if hasattr(story, 'latest_chapter_id'):
+            latest_chapter = Chapter.objects.get(id=story.latest_chapter_id)
+            return ChapterInStorySerializer(latest_chapter).data
+        return None
 
 
 class TopStorySerializer(serializers.ModelSerializer):
