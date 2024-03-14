@@ -53,12 +53,13 @@ class Story(models.Model):
         max_length=9,
         choices=Status.choices,
         default=Status.ONGOING,
-
     )
     source = models.CharField(max_length=255, blank=True)
     cover_photo = CloudinaryField('image')
     slug = models.SlugField(max_length=255, unique=True, editable=False, blank=True)
     genres = models.ManyToManyField(Genre, through='StoryGenre')
+    latest_chapter = models.ForeignKey('Chapter', related_name='latest_chapter', on_delete=models.SET_NULL, null=True,
+                                       blank=True)
 
     def generate_cover_photo_public_id(self, original_url):
         hash_digest = hashlib.sha256(original_url.encode()).hexdigest()[:10]
