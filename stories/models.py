@@ -125,7 +125,7 @@ class Rating(models.Model):
 class ReadingStats(models.Model):
     story = models.ForeignKey(Story, on_delete=models.CASCADE)
     read_count = models.IntegerField()
-    date = models.DateTimeField()
+    date = models.DateField()
 
     class Meta:
         unique_together = (('story', 'date'),)
