@@ -1,4 +1,3 @@
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -93,23 +92,10 @@ class ChapterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Chapter
-        fields = ['id', 'story', 'title', 'content', 'published_date']
+        fields = ['id', 'story', 'number_chapter', 'title', 'content', 'published_date']
 
 
 class RatingSerializer(serializers.ModelSerializer):
-    slug = serializers.SlugField(write_only=True)
-
     class Meta:
         model = Rating
-        fields = ['slug', 'rating_value']
-
-    def create(self, validated_data):
-        slug = validated_data.pop('slug')
-        story = get_object_or_404(Story, slug=slug)
-        rating = Rating.objects.create(story=story, **validated_data)
-        return rating
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['slug'] = instance.story.slug
-        return representation
+        fields = ['id', 'story', 'rating_value']

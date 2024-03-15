@@ -4,10 +4,10 @@ from django.db.models import Count, Avg, Q
 from django.db.models import IntegerField, Sum, OuterRef, Subquery
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework import status
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from unidecode import unidecode
 
 from story_site.pagination import CustomPagination
 from .consts import NEW_STORY_DIFF_DAYS, HOT_STORY_TOTAL_READS
@@ -16,16 +16,9 @@ from .serializers import StorySerializer, StoryQueryParameterSerializer, Chapter
     GenreSerializer, ChapterInStorySerializer, TopStorySerializer, AuthorSerializer
 
 
-class StoryListView(ListAPIView):
-    serializer_class = StorySerializer
-    pagination_class = CustomPagination
-
-    def get_queryset(self):
-        queryset = Story.objects.select_related('author', 'latest_chapter').prefetch_related('genres')
-        param_serializer = StoryQueryParameterSerializer(data=self.request.query_params)
-        param_serializer.is_valid(raise_exception=True)
-        validated_data = param_serializer.validated_data
-
+class Queryset():
+    @staticmethod
+    def get_story_query_set():
         total_chapters_subquery = Chapter.objects.filter(
             story_id=OuterRef('pk')
         ).values('story').annotate(total=Count('id')).values('total')
@@ -39,12 +32,26 @@ class StoryListView(ListAPIView):
         total_reads_week_subquery = ReadingStats.objects.filter(
             story_id=OuterRef('pk'), date__gte=one_week_ago
         ).values('story').annotate(total_read_week=Sum('read_count')).values('total_read_week')
-        queryset = queryset.annotate(
+        queryset = Story.objects.select_related('author').prefetch_related('genres').annotate(
             total_chapters=Subquery(total_chapters_subquery),
             avg_rating=Subquery(avg_rating_subquery),
             total_reads_week=Subquery(total_reads_week_subquery),
             total_reads=Subquery(total_reads_subquery),
         )
+        return queryset
+
+
+class StoryListView(ListAPIView):
+    serializer_class = StorySerializer
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        queryset = Story.objects.select_related('author', 'latest_chapter').prefetch_related('genres')
+        param_serializer = StoryQueryParameterSerializer(data=self.request.query_params)
+        param_serializer.is_valid(raise_exception=True)
+        validated_data = param_serializer.validated_data
+
+        queryset = Queryset.get_story_query_set()
 
         filters = Q()
 
@@ -80,25 +87,7 @@ class StoryDetailView(RetrieveAPIView):
 
     def get_object(self):
         slug = self.kwargs.get('slug', None)
-        total_chapters_subquery = Chapter.objects.filter(
-            story_id=OuterRef('pk')
-        ).values('story').annotate(total=Count('id')).values('total')
-        avg_rating_subquery = Rating.objects.filter(
-            story_id=OuterRef('pk')
-        ).values('story').annotate(average=Avg('rating_value')).values('average')
-        total_reads_subquery = ReadingStats.objects.filter(
-            story_id=OuterRef('pk')
-        ).values('story').annotate(total_read=Sum('read_count')).values('total_read')
-        one_week_ago = timezone.now() - timezone.timedelta(days=7)
-        total_reads_week_subquery = ReadingStats.objects.filter(
-            story_id=OuterRef('pk'), date__gte=one_week_ago
-        ).values('story').annotate(total_read_week=Sum('read_count')).values('total_read_week')
-        queryset = Story.objects.select_related('author').prefetch_related('genres').annotate(
-            total_chapters=Subquery(total_chapters_subquery),
-            avg_rating=Subquery(avg_rating_subquery),
-            total_reads_week=Subquery(total_reads_week_subquery),
-            total_reads=Subquery(total_reads_subquery),
-        ).get(slug=slug)
+        queryset = Queryset.get_story_query_set().get(slug=slug)
         return queryset
 
 
@@ -121,7 +110,7 @@ class ChapterListView(ListAPIView):
 
 class ChapterShortInfoListView(ListAPIView):
     serializer_class = ChapterInStorySerializer
-    pagination_class = CustomPagination
+    pagination_class = None
 
     def get_queryset(self):
         slug = self.kwargs.get('slug')
@@ -147,17 +136,8 @@ class ChapterDetailView(RetrieveAPIView):
 
 
 class RatingCreateView(CreateAPIView):
+    queryset = Rating.objects.all()
     serializer_class = RatingSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    def perform_create(self, serializer):
-        serializer.save()
 
 
 class GenreListView(ListAPIView):
@@ -188,12 +168,14 @@ class AuthorDetailView(RetrieveAPIView):
 
 class StorySearchView(ListAPIView):
     serializer_class = StorySerializer
+    pagination_class = None
 
     def get_queryset(self):
         text = self.request.query_params.get('text', '')
-        queryset = Story.objects.filter(
-            Q(title__icontains=text) |
-            Q(author__name__icontains=text)
+        text = unidecode(text)
+        queryset = Queryset.get_story_query_set().filter(
+            Q(slug__icontains=text) |
+            Q(author__slug__icontains=text)
         )[:5]
         return queryset
 
