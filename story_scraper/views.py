@@ -1,7 +1,7 @@
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 
-from .forms import ListStoriesCrawlForm, SomeStoriesCrawlForm
+from story_scraper.forms import ListStoriesCrawlForm, SomeStoriesCrawlForm
 
 
 @staff_member_required

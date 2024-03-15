@@ -30,9 +30,6 @@ class StoryListView(ListAPIView):
         total_chapters_subquery = Chapter.objects.filter(
             story_id=OuterRef('pk')
         ).values('story').annotate(total=Count('id')).values('total')
-        latest_chapter_subquery = Chapter.objects.filter(
-            story_id=OuterRef('pk')
-        ).order_by('-number_chapter').values('id')[:1]
         avg_rating_subquery = Rating.objects.filter(
             story_id=OuterRef('pk')
         ).values('story').annotate(average=Avg('rating_value')).values('average')
@@ -48,7 +45,6 @@ class StoryListView(ListAPIView):
             avg_rating=Subquery(avg_rating_subquery),
             total_reads_week=Subquery(total_reads_week_subquery),
             total_reads=Subquery(total_reads_subquery),
-            latest_chapter_id=Subquery(latest_chapter_subquery),
         )
 
         filters = Q()
@@ -85,7 +81,25 @@ class StoryDetailView(RetrieveAPIView):
 
     def get_object(self):
         slug = self.kwargs.get('slug', None)
-        queryset = Story.objects.prefetch_related('chapter_set', 'readingstats_set', 'rating_set').get(slug=slug)
+        total_chapters_subquery = Chapter.objects.filter(
+            story_id=OuterRef('pk')
+        ).values('story').annotate(total=Count('id')).values('total')
+        avg_rating_subquery = Rating.objects.filter(
+            story_id=OuterRef('pk')
+        ).values('story').annotate(average=Avg('rating_value')).values('average')
+        total_reads_subquery = ReadingStats.objects.filter(
+            story_id=OuterRef('pk')
+        ).values('story').annotate(total_read=Sum('read_count')).values('total_read')
+        one_week_ago = timezone.now() - timezone.timedelta(days=7)
+        total_reads_week_subquery = ReadingStats.objects.filter(
+            story_id=OuterRef('pk'), date__gte=one_week_ago
+        ).values('story').annotate(total_read_week=Sum('read_count')).values('total_read_week')
+        queryset = Story.objects.select_related('author').prefetch_related('genres').annotate(
+            total_chapters=Subquery(total_chapters_subquery),
+            avg_rating=Subquery(avg_rating_subquery),
+            total_reads_week=Subquery(total_reads_week_subquery),
+            total_reads=Subquery(total_reads_subquery),
+        ).get(slug=slug)
         return queryset
 
 

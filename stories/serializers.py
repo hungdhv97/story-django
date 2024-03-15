@@ -30,7 +30,7 @@ class StorySerializer(serializers.ModelSerializer):
     is_new = serializers.SerializerMethodField()
     is_hot = serializers.SerializerMethodField()
     avg_rating = serializers.FloatField()
-    latest_chapter = serializers.SerializerMethodField()
+    latest_chapter = ChapterInStorySerializer()
     cover_photo = serializers.SerializerMethodField()
     author = AuthorSerializer()
     genres = GenreSerializer(many=True, read_only=True)
@@ -54,12 +54,6 @@ class StorySerializer(serializers.ModelSerializer):
 
     def get_is_hot(self, story):
         return story.total_reads_week >= HOT_STORY_TOTAL_READS if story.total_reads_week else False
-
-    def get_latest_chapter(self, story):
-        if hasattr(story, 'latest_chapter_id'):
-            latest_chapter = Chapter.objects.get(id=story.latest_chapter_id)
-            return ChapterInStorySerializer(latest_chapter).data
-        return None
 
 
 class TopStorySerializer(serializers.ModelSerializer):

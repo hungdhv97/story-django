@@ -57,7 +57,17 @@ class ChapterHandler:
         chapter = Chapter(story_id=self.story.id, number_chapter=number_chapter, title=title, content=content,
                           published_date=published_date)
         chapter.save()
+        print(chapter.id)
+        self.update_story_latest_chapter(chapter)
         return chapter
+
+    def update_story_latest_chapter(self, chapter):
+        story = chapter.story
+        latest_chapter = story.latest_chapter
+        if latest_chapter and latest_chapter.number_chapter >= chapter.number_chapter:
+            return
+        story.latest_chapter = chapter
+        story.save(update_fields=['latest_chapter'])
 
     def get_last_page(self, response):
         last_page_url = response.css("#list-chapter .pagination li a:contains('Cuối ')::attr(href)").get()

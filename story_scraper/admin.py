@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.urls import path
 
-from .models import CrawlListStories, CrawlSomeStories
-from .views import crawl_list_stories_view, crawl_some_stories_view
+from story_scraper.models import CrawlListStories, CrawlSomeStories
+from story_scraper.views import crawl_list_stories_view, crawl_some_stories_view
 
 
 class CrawlListStoriesAdmin(admin.ModelAdmin):

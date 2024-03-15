@@ -6,11 +6,21 @@
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+
 import os
+import sys
+
+import django
 from dotenv import load_dotenv
 
 load_dotenv()
 
+sys.path.append('/home/sotatek/study/story-django')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'story_site.settings'
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
+django.setup()
+
+LOG_LEVEL = 'INFO'
 BOT_NAME = "story_scraper"
 
 SPIDER_MODULES = ["story_scraper.story_scraper.spiders"]
@@ -94,13 +104,3 @@ CONCURRENT_REQUESTS = os.environ.get('CONCURRENT_REQUESTS', 16)
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
-
-import os
-import sys
-
-import django
-
-sys.path.append('/home/sotatek/study/story-django')
-os.environ['DJANGO_SETTINGS_MODULE'] = 'story_site.settings'
-os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
-django.setup()

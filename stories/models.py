@@ -77,8 +77,8 @@ class Story(models.Model):
             num += 1
 
         self.slug = unique_slug
-
-        if self.cover_photo and self.cover_photo.startswith('http'):
+        
+        if isinstance(self.cover_photo, str) and self.cover_photo.startswith('http'):
             public_id = self.generate_cover_photo_public_id(self.cover_photo)
             image_url = get_url_from_cloudinary_storage(public_id)
             if image_url is None:
