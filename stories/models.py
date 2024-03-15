@@ -77,7 +77,7 @@ class Story(models.Model):
             num += 1
 
         self.slug = unique_slug
-        
+
         if isinstance(self.cover_photo, str) and self.cover_photo.startswith('http'):
             public_id = self.generate_cover_photo_public_id(self.cover_photo)
             image_url = get_url_from_cloudinary_storage(public_id)
@@ -111,7 +111,7 @@ class Chapter(models.Model):
     title = models.CharField(max_length=255, blank=True)
     content = models.TextField(blank=True)
     published_date = models.DateTimeField()
-    number_chapter = models.IntegerField(null=True, blank=True)
+    number_chapter = models.IntegerField(null=True, blank=True, db_index=True)
 
     def __str__(self):
         return f'{self.title}'

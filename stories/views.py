@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
 
 from django.db.models import Count, Avg, Q
-from django.db.models import IntegerField, Sum, OuterRef, Subquery, Value
-from django.db.models.functions import Cast, StrIndex, Substr, Length, Trim
+from django.db.models import IntegerField, Sum, OuterRef, Subquery
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -22,7 +21,7 @@ class StoryListView(ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        queryset = Story.objects.select_related('author').prefetch_related('genres')
+        queryset = Story.objects.select_related('author', 'latest_chapter').prefetch_related('genres')
         param_serializer = StoryQueryParameterSerializer(data=self.request.query_params)
         param_serializer.is_valid(raise_exception=True)
         validated_data = param_serializer.validated_data
@@ -67,8 +66,8 @@ class StoryListView(ListAPIView):
         queryset = queryset.filter(filters)
 
         order_fields = []
-        if 'total_chapters_from' in validated_data or 'total_chapters_to' in validated_data:
-            order_fields.append('-total_chapters')
+        if 'order_by' in validated_data:
+            order_fields.extend(validated_data['order_by'].split(','))
         order_fields.append('-total_reads')
         queryset = queryset.order_by(*order_fields)
 
@@ -109,21 +108,7 @@ class ChapterListView(ListAPIView):
 
     def get_queryset(self):
         slug = self.kwargs.get('slug')
-        story = get_object_or_404(Story, slug=slug)
-        queryset = Chapter.objects.filter(story=story)
-
-        queryset = queryset.annotate(
-            number_chapter=Cast(
-                Trim(
-                    Substr(
-                        'title',
-                        StrIndex('title', Value('Chương ')) + 7,
-                        Length('title')
-                    )
-                ),
-                IntegerField()
-            )
-        )
+        queryset = Chapter.objects.filter(story__slug=slug)
 
         sort = self.request.query_params.get('sort')
         if sort == 'desc':
@@ -140,21 +125,7 @@ class ChapterShortInfoListView(ListAPIView):
 
     def get_queryset(self):
         slug = self.kwargs.get('slug')
-        story = get_object_or_404(Story, slug=slug)
-        queryset = Chapter.objects.filter(story=story)
-
-        queryset = queryset.annotate(
-            number_chapter=Cast(
-                Trim(
-                    Substr(
-                        'title',
-                        StrIndex('title', Value('Chương ')) + 7,
-                        Length('title')
-                    )
-                ),
-                IntegerField()
-            )
-        )
+        queryset = Chapter.objects.filter(story__slug=slug)
 
         sort = self.request.query_params.get('sort')
         if sort == 'desc':

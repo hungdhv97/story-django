@@ -79,12 +79,13 @@ class StoryQueryParameterSerializer(serializers.Serializer):
     status = serializers.CharField(required=False)
     total_chapters_from = serializers.IntegerField(required=False)
     total_chapters_to = serializers.IntegerField(required=False)
+    order_by = serializers.CharField(required=False)
 
 
 class StoryInChapterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Story
-        fields = ['title', 'slug']
+        fields = ['id', 'title', 'slug']
 
 
 class ChapterSerializer(serializers.ModelSerializer):
