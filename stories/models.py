@@ -12,7 +12,7 @@ from .utils import get_url_from_cloudinary_storage
 
 class Author(models.Model):
     name = models.CharField(max_length=255, blank=True)
-    slug = models.SlugField(max_length=255, blank=True)
+    slug = models.SlugField(max_length=255, unique=True, editable=False, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:

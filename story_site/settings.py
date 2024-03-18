@@ -9,11 +9,16 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+import logging
 import os
+import sys
 from pathlib import Path
 
 import cloudinary.uploader
 from dotenv import load_dotenv
+
+if 'makemigrations' in sys.argv or 'migrate' in sys.argv:
+    logging.disable(logging.CRITICAL)
 
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
