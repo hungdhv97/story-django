@@ -17,8 +17,8 @@ from pathlib import Path
 import cloudinary.uploader
 from dotenv import load_dotenv
 
-if 'makemigrations' in sys.argv or 'migrate' in sys.argv:
-    logging.disable(logging.CRITICAL)
+if 'makemigrations' in sys.argv or 'migrate' in sys.argv or 'scheduler' in sys.argv[0]:
+    logging.disable(logging.DEBUG)
 
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

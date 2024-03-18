@@ -5,9 +5,9 @@ from story_scraper.story_scraper import settings
 from story_scraper.story_scraper.spiders.list_stories_spider import ListStoriesSpider
 
 from_story_index = 1
-to_story_index = 100
+to_story_index = 10
 from_chapter_index = 1
-to_chapter_index = 1000
+to_chapter_index = 20
 crawler_settings = Settings()
 crawler_settings.setmodule(settings)
 process = CrawlerProcess(settings=crawler_settings)
