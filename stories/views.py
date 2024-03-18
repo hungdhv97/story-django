@@ -196,6 +196,9 @@ class TopStoryListView(APIView):
         ).values('story').annotate(
             total=Sum('read_count')
         ).values('total')
+        reads_in_all_time = ReadingStats.objects.filter(
+            story_id=OuterRef('pk')
+        ).values('story').annotate(total_read=Sum('read_count')).values('total_read')
 
         top_week_stories = Story.objects.annotate(
             total_reads=Subquery(reads_in_last_week, output_field=IntegerField())
@@ -204,7 +207,7 @@ class TopStoryListView(APIView):
             total_reads=Subquery(reads_in_last_month, output_field=IntegerField())
         ).order_by('-total_reads')[:10]
         top_all_time_stories = Story.objects.annotate(
-            total_reads=Sum('readingstats__read_count', distinct=True)
+            total_reads=Subquery(reads_in_all_time, output_field=IntegerField())
         ).order_by('-total_reads')[:10]
 
         week_data = TopStorySerializer(top_week_stories, many=True).data
