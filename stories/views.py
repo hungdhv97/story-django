@@ -13,10 +13,10 @@ from story_site.pagination import CustomPagination
 from .consts import NEW_STORY_DIFF_DAYS, HOT_STORY_TOTAL_READS
 from .models import Story, Chapter, Genre, ReadingStats, Author, Rating
 from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterSerializer, RatingSerializer, \
-    GenreSerializer, ChapterInStorySerializer, TopStorySerializer, AuthorSerializer
+    GenreSerializer, ChapterInStorySerializer, TopStorySerializer, AuthorSerializer, StoryInChapterSerializer
 
 
-class Queryset():
+class Queryset:
     @staticmethod
     def get_story_query_set():
         total_chapters_subquery = Chapter.objects.filter(
@@ -46,7 +46,6 @@ class StoryListView(ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        queryset = Story.objects.select_related('author', 'latest_chapter').prefetch_related('genres')
         param_serializer = StoryQueryParameterSerializer(data=self.request.query_params)
         param_serializer.is_valid(raise_exception=True)
         validated_data = param_serializer.validated_data
@@ -167,13 +166,13 @@ class AuthorDetailView(RetrieveAPIView):
 
 
 class StorySearchView(ListAPIView):
-    serializer_class = StorySerializer
+    serializer_class = StoryInChapterSerializer
     pagination_class = None
 
     def get_queryset(self):
         text = self.request.query_params.get('text', '')
         text = unidecode(text)
-        queryset = Queryset.get_story_query_set().filter(
+        queryset = Story.objects.select_related('author').filter(
             Q(slug__icontains=text) |
             Q(author__slug__icontains=text)
         )[:5]
@@ -186,7 +185,7 @@ class TopStoryListView(APIView):
         one_month_ago = datetime.now() - timedelta(days=30)
 
         reads_in_last_week = ReadingStats.objects.filter(
-            story=OuterRef('pk'),
+            story_id=OuterRef('pk'),
             date__gte=one_week_ago
         ).values('story').annotate(
             total=Sum('read_count')
