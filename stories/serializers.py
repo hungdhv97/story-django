@@ -2,7 +2,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from .consts import HOT_STORY_TOTAL_READS, NEW_STORY_DIFF_DAYS
-from .models import Story, Author, Genre, Chapter, Rating
+from .models import Story, Author, Genre, Chapter, Rating, ReadingStats
 
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -102,3 +102,9 @@ class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = ['id', 'story', 'rating_value']
+
+
+class ReadingStatsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReadingStats
+        fields = ['id', 'story', 'read_count', 'date']

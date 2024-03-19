@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import StoryListView, StoryDetailView, ChapterListView, ChapterDetailView, RatingCreateView, GenreListView, \
-    StorySearchView, ChapterShortInfoListView, TopStoryListView, GenreDetailView, AuthorDetailView
+    StorySearchView, ChapterShortInfoListView, TopStoryListView, GenreDetailView, AuthorDetailView, IncreaseReadCount
 
 urlpatterns = [
     path('stories/', StoryListView.as_view(), name='story-list'),
@@ -16,4 +16,5 @@ urlpatterns = [
     path('genres/', GenreListView.as_view(), name='genre-list'),
     path('genres/<slug:slug>/', GenreDetailView.as_view(), name='genre-detail'),
     path('search/', StorySearchView.as_view(), name='story-search'),
+    path('increase-read-count/<int:story_id>/', IncreaseReadCount.as_view(), name='increase-read-count'),
 ]

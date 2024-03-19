@@ -1,9 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from django.db.models import Count, Avg, Q
 from django.db.models import IntegerField, Sum, OuterRef, Subquery
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from rest_framework import status
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,7 +14,8 @@ from story_site.pagination import CustomPagination
 from .consts import NEW_STORY_DIFF_DAYS, HOT_STORY_TOTAL_READS
 from .models import Story, Chapter, Genre, ReadingStats, Author, Rating
 from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterSerializer, RatingSerializer, \
-    GenreSerializer, ChapterInStorySerializer, TopStorySerializer, AuthorSerializer, StoryInChapterSerializer
+    GenreSerializer, ChapterInStorySerializer, TopStorySerializer, AuthorSerializer, StoryInChapterSerializer, \
+    ReadingStatsSerializer
 
 
 class Queryset:
@@ -219,3 +221,16 @@ class TopStoryListView(APIView):
             "month": month_data,
             "all": all_time_data,
         })
+
+
+class IncreaseReadCount(APIView):
+    def post(self, request, story_id):
+        today = date.today()
+        try:
+            reading_stats = ReadingStats.objects.get(story_id=story_id, date=today)
+            reading_stats.read_count += 1
+            reading_stats.save()
+        except ReadingStats.DoesNotExist:
+            reading_stats = ReadingStats.objects.create(story_id=story_id, read_count=1, date=today)
+        serialized_data = ReadingStatsSerializer(reading_stats)
+        return Response(serialized_data.data, status=status.HTTP_200_OK)
