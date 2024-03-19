@@ -32,6 +32,7 @@ SECRET_KEY = 'django-insecure-hzvl$v3r7&cn-2i5li)ktg&%xmd_yys*did(57m!b05l0+)pc(
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+LOGGING_DEBUG = os.getenv('LOGGING_DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = ['*']
 
@@ -169,15 +170,36 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'console': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
         },
     },
     'loggers': {
         'django.db.backends': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': False,
         },
     },
 }
+
+if LOGGING_DEBUG:
+    LOGGING.update(
+        {
+            'version': 1,
+            'disable_existing_loggers': False,
+            'handlers': {
+                'console': {
+                    'level': 'DEBUG',
+                    'class': 'logging.StreamHandler',
+                },
+            },
+            'loggers': {
+                'django.db.backends': {
+                    'handlers': ['console'],
+                    'level': 'DEBUG',
+                    'propagate': False,
+                },
+            },
+        }
+    )
