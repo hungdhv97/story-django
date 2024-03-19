@@ -128,7 +128,7 @@ class Chapter(models.Model):
     title = models.CharField(max_length=255, blank=True)
     content = models.TextField(blank=True)
     published_date = models.DateTimeField()
-    number_chapter = models.IntegerField(null=True, blank=True, db_index=True)
+    number_chapter = models.IntegerField(db_index=True)
 
     def __str__(self):
         return f'{self.title}'
