@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'story_scraper',
-    'common'
+    'common',
+    'social_django',
 ]
 
 MIDDLEWARE = [
@@ -203,3 +204,19 @@ if LOGGING_DEBUG:
             },
         }
     )
+
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.google.GoogleOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = ''
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = ''
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/userinfo.email',
+]
+
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
+LOGIN_REDIRECT_URL = '/'

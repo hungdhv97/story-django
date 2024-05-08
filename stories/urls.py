@@ -1,4 +1,7 @@
-from django.urls import path
+from django.urls import (
+    include,
+    path,
+)
 
 from .views import (
     AuthorDetailView,
@@ -31,4 +34,5 @@ urlpatterns = [
     path('genres/<slug:slug>/', GenreDetailView.as_view(), name='genre-detail'),
     path('search/', StorySearchView.as_view(), name='story-search'),
     path('increase-read-count/<int:story_id>/', IncreaseReadCount.as_view(), name='increase-read-count'),
+    path('accounts/', include('social_django.urls', namespace='social')),
 ]
