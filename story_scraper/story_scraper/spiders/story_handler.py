@@ -6,7 +6,16 @@ from datetime import timedelta
 from django.utils import timezone
 from scrapy import Request
 
-from stories.models import Author, Genre, Story, Status, StoryGenre, Chapter, Rating, ReadingStats
+from stories.models import (
+    Author,
+    Chapter,
+    Genre,
+    Rating,
+    ReadingStats,
+    Status,
+    Story,
+    StoryGenre,
+)
 
 
 class ChapterHandler:
@@ -31,9 +40,11 @@ class ChapterHandler:
     def parse(self, response):
         page_number = int(response.url.split('trang-')[-1].split('/')[0])
         start_index_on_page = (self.from_chapter_index - 1) % self.chapters_per_page if page_number == math.ceil(
-            self.from_chapter_index / self.chapters_per_page) else 0
+            self.from_chapter_index / self.chapters_per_page
+        ) else 0
         end_index_on_page = (self.to_chapter_index - 1) % self.chapters_per_page if page_number == math.ceil(
-            self.to_chapter_index / self.chapters_per_page) else (self.chapters_per_page - 1)
+            self.to_chapter_index / self.chapters_per_page
+        ) else (self.chapters_per_page - 1)
 
         chapter_urls = response.css('.col-truyen-main #list-chapter .row ul li a::attr(href)').getall()
         for chapter_url in chapter_urls[start_index_on_page:end_index_on_page + 1]:
@@ -54,8 +65,10 @@ class ChapterHandler:
         existing_chapter = Chapter.objects.filter(story_id=self.story.id, title=title).first()
         if existing_chapter is not None:
             return existing_chapter
-        chapter = Chapter(story_id=self.story.id, number_chapter=number_chapter, title=title, content=content,
-                          published_date=published_date)
+        chapter = Chapter(
+            story_id=self.story.id, number_chapter=number_chapter, title=title, content=content,
+            published_date=published_date
+        )
         chapter.save()
         print(chapter.id)
         self.update_story_latest_chapter(chapter)
@@ -129,7 +142,8 @@ class StoryHandler:
             re.sub(
                 r'<br\s*/?>',
                 '\n',
-                response.css('.col-truyen-main .desc-text').get())
+                response.css('.col-truyen-main .desc-text').get()
+            )
         ).replace("\u00A0", " ")
         created_date = timezone.now() - timedelta(days=60) + timedelta(days=random.randint(0, 60))
         # Mapping of conditions to statuses
@@ -148,9 +162,11 @@ class StoryHandler:
         existing_story = Story.objects.filter(title=shorten_title).first()
         if existing_story is not None:
             return existing_story
-        story = Story(title=shorten_title, description=description, author_id=author.id, created_date=created_date,
-                      status=status,
-                      source=source, cover_photo=cover_photo)
+        story = Story(
+            title=shorten_title, description=description, author_id=author.id, created_date=created_date,
+            status=status,
+            source=source, cover_photo=cover_photo
+        )
         story.save()
         return story
 
@@ -163,7 +179,8 @@ class StoryHandler:
 
     def save_rating(self, response, story):
         rating_value = round(
-            float(response.css(".col-truyen-main .desc .rate .small span[itemprop='ratingValue']::text").get()) / 2)
+            float(response.css(".col-truyen-main .desc .rate .small span[itemprop='ratingValue']::text").get()) / 2
+        )
 
         existing_rating = Rating.objects.filter(story_id=story.id).first()
         if existing_rating is None:

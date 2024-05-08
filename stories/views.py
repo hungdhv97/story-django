@@ -1,21 +1,55 @@
-from datetime import datetime, timedelta, date
+from datetime import (
+    date,
+    datetime,
+    timedelta,
+)
 
-from django.db.models import Count, Avg, Q
-from django.db.models import IntegerField, Sum, OuterRef, Subquery
+from django.db.models import (
+    Avg,
+    Count,
+    IntegerField,
+    OuterRef,
+    Q,
+    Subquery,
+    Sum,
+)
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView
+from rest_framework.generics import (
+    CreateAPIView,
+    ListAPIView,
+    RetrieveAPIView,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from unidecode import unidecode
 
 from story_site.pagination import CustomPagination
-from .consts import NEW_STORY_DIFF_DAYS, HOT_STORY_TOTAL_READS
-from .models import Story, Chapter, Genre, ReadingStats, Author, Rating
-from .serializers import StorySerializer, StoryQueryParameterSerializer, ChapterSerializer, RatingSerializer, \
-    GenreSerializer, ChapterInStorySerializer, TopStorySerializer, AuthorSerializer, StoryInChapterSerializer, \
-    ReadingStatsSerializer
+from .consts import (
+    HOT_STORY_TOTAL_READS,
+    NEW_STORY_DIFF_DAYS,
+)
+from .models import (
+    Author,
+    Chapter,
+    Genre,
+    Rating,
+    ReadingStats,
+    Story,
+)
+from .serializers import (
+    AuthorSerializer,
+    ChapterInStorySerializer,
+    ChapterSerializer,
+    GenreSerializer,
+    RatingSerializer,
+    ReadingStatsSerializer,
+    StoryInChapterSerializer,
+    StoryQueryParameterSerializer,
+    StorySerializer,
+    TopStorySerializer,
+)
 
 
 class Queryset:
@@ -216,11 +250,13 @@ class TopStoryListView(APIView):
         month_data = TopStorySerializer(top_month_stories, many=True).data
         all_time_data = TopStorySerializer(top_all_time_stories, many=True).data
 
-        return Response({
-            "week": week_data,
-            "month": month_data,
-            "all": all_time_data,
-        })
+        return Response(
+            {
+                "week": week_data,
+                "month": month_data,
+                "all": all_time_data,
+            }
+        )
 
 
 class IncreaseReadCount(APIView):

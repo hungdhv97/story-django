@@ -1,7 +1,15 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Author, Genre, Story, StoryGenre, Chapter, Rating, ReadingStats
+from .models import (
+    Author,
+    Chapter,
+    Genre,
+    Rating,
+    ReadingStats,
+    Story,
+    StoryGenre,
+)
 
 
 class StoryAdmin(admin.ModelAdmin):

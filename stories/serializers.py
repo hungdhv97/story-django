@@ -1,8 +1,18 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from .consts import HOT_STORY_TOTAL_READS, NEW_STORY_DIFF_DAYS
-from .models import Story, Author, Genre, Chapter, Rating, ReadingStats
+from .consts import (
+    HOT_STORY_TOTAL_READS,
+    NEW_STORY_DIFF_DAYS,
+)
+from .models import (
+    Author,
+    Chapter,
+    Genre,
+    Rating,
+    ReadingStats,
+    Story,
+)
 
 
 class AuthorSerializer(serializers.ModelSerializer):

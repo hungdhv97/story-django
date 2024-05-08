@@ -1,6 +1,9 @@
 import math
 
-from scrapy import Spider, Request
+from scrapy import (
+    Request,
+    Spider,
+)
 
 from story_scraper.story_scraper.spiders.story_handler import StoryHandler
 
@@ -36,9 +39,11 @@ class ListStoriesSpider(Spider):
     def parse(self, response):
         page_number = int(response.url.split('trang-')[-1].split('/')[0])
         start_index_on_page = (self.from_story_index - 1) % self.stories_per_page if page_number == math.ceil(
-            self.from_story_index / self.stories_per_page) else 0
+            self.from_story_index / self.stories_per_page
+        ) else 0
         end_index_on_page = (self.to_story_index - 1) % self.stories_per_page if page_number == math.ceil(
-            self.to_story_index / self.stories_per_page) else (self.stories_per_page - 1)
+            self.to_story_index / self.stories_per_page
+        ) else (self.stories_per_page - 1)
 
         story_urls = response.css('.col-truyen-main .list-truyen .row h3 a::attr(href)').getall()
         for story_url in story_urls[start_index_on_page:end_index_on_page + 1]:

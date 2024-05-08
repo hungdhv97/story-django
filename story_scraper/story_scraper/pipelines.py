@@ -5,7 +5,14 @@
 
 from django.db import connection
 
-from stories.models import Genre, Author, StoryGenre, Rating, ReadingStats, Story
+from stories.models import (
+    Author,
+    Genre,
+    Rating,
+    ReadingStats,
+    Story,
+    StoryGenre,
+)
 
 
 class ClearDatabasePipeline:
