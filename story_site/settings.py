@@ -36,6 +36,11 @@ LOGGING_DEBUG = os.getenv('LOGGING_DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://xoai.shop',
+    'https://www.xoai.shop'
+]
+
 # Application definition
 
 INSTALLED_APPS = [
