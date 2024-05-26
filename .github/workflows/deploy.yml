@@ -1,0 +1,25 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker
+        uses: actions/setup-docker@v2
+
+      - name: Build and push Docker images
+        run: |
+          docker-compose down
+          docker-compose up -d --build
+
+      - name: Clean up Docker images
+        run: docker image prune -f
